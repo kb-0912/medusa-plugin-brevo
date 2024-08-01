@@ -49,7 +49,7 @@ class BrevoService extends NotificationService {
 
   async sendEmail(sendOptions) {
     const emailData = {
-      sender: { email: sendOptions.From },
+      sender: { email: this.options_.from }, // Ensure 'from' is correctly set in options
       to: [{ email: sendOptions.to }],
       templateId: sendOptions.TemplateId,
       params: sendOptions.TemplateModel,
