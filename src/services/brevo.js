@@ -110,15 +110,16 @@ class BrevoService extends NotificationService {
       })[0].updated_at;
       const items = this.processItems_(cart.items, cart?.region?.includes_tax ? 0 : (cart?.region?.tax_rate / 100), cart?.region?.currency_code.toUpperCase());
       const sendOptions = {
-        From: this.options_.from,
-        to: cart.email,
-        TemplateId: 0,
-        TemplateModel: {
+        sender: { email: this.options_.from },  // Wrap 'From' in a 'sender' object with 'email'
+        to: [{ email: cart.email }],  // 'to' should be an array of objects with 'email'
+        templateId: 0,  // Assuming '0' is a placeholder for the actual template ID
+        params: {
           ...cart,
           items,
           ...this.options_.default_data
         }
       };
+      
       if (check < secondCheck) {
         if (check < thirdCheck) {
           if (options?.third?.template && cart?.metadata?.third_abandonedcart_mail !== true) {
@@ -206,15 +207,16 @@ class BrevoService extends NotificationService {
           options.template = options.template[Math.floor(Math.random() * options.template.length)];
         }
         const sendOptions = {
-          From: this.options_.from,
-          to: orderData.customer.email,
-          TemplateId: options.template,
-          TemplateModel: {
+          sender: { email: this.options_.from },  // Corrected: Wrap 'From' in 'sender' object
+          to: [{ email: orderData.customer.email }],  // Corrected: 'to' should be an array of objects
+          templateId: options.template,  // Ensure this is the correct template ID
+          params: {
             ...orderData,
             ...this.options_.default_data,
             valid_through: validThrough
           }
         };
+        
 
         // Update order metadata
         order.metadata = {
@@ -367,10 +369,10 @@ class BrevoService extends NotificationService {
       return false;
 
     const sendOptions = {
-      From: this.options_.from,
-      to: data.email ?? data?.customer?.email,
-      TemplateId: templateId,
-      TemplateModel: {
+      sender: { email: this.options_.from },  // Correct structure for sender
+      to: [{ email: data.email ?? data?.customer?.email }],  // Correct structure for recipient
+      templateId: templateId,
+      params: {
         ...data,
         ...this.options_.default_data
       }
