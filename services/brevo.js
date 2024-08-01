@@ -88,8 +88,9 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
             case 0:
               emailData = {
                 sender: {
-                  email: sendOptions.From
+                  email: this.options_.from
                 },
+                // Ensure 'from' is correctly set in options
                 to: [{
                   email: sendOptions.to
                 }],

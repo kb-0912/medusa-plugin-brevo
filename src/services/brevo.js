@@ -48,8 +48,16 @@ class BrevoService extends NotificationService {
   }
 
   async sendEmail(sendOptions) {
+    // Log the sender email for debugging
+    console.log("Sender Email:", this.options_.from);
+
+    // Ensure the sender email is set
+    if (!this.options_.from) {
+      throw new Error("Sender email is not defined in options.");
+    }
+
     const emailData = {
-      sender: { email: this.options_.from }, // Ensure 'from' is correctly set in options
+      sender: { email: this.options_.from }, // Use sender from options
       to: [{ email: sendOptions.to }],
       templateId: sendOptions.TemplateId,
       params: sendOptions.TemplateModel,
