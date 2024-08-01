@@ -57,7 +57,11 @@ class BrevoService extends NotificationService {
     }
 
     const emailData = {
-      sender: { email: this.options_.from }, // Use sender from options
+      sender: { 
+        email: this.options_.from_email,
+        name: this.options_.from_name
+
+       }, // Use sender from options
       to: [{ email: sendOptions.to }],
       templateId: sendOptions.TemplateId,
       params: sendOptions.TemplateModel,
@@ -110,7 +114,10 @@ class BrevoService extends NotificationService {
       })[0].updated_at;
       const items = this.processItems_(cart.items, cart?.region?.includes_tax ? 0 : (cart?.region?.tax_rate / 100), cart?.region?.currency_code.toUpperCase());
       const sendOptions = {
-        sender: { email: this.options_.from },  // Wrap 'From' in a 'sender' object with 'email'
+        sender: { 
+          email: this.options_.from_email,
+          name: this.options_.from_name
+         },  // Wrap 'From' in a 'sender' object with 'email'
         to: [{ email: cart.email }],  // 'to' should be an array of objects with 'email'
         templateId: 0,  // Assuming '0' is a placeholder for the actual template ID
         params: {
@@ -207,7 +214,10 @@ class BrevoService extends NotificationService {
           options.template = options.template[Math.floor(Math.random() * options.template.length)];
         }
         const sendOptions = {
-          sender: { email: this.options_.from },  // Corrected: Wrap 'From' in 'sender' object
+          sender: { 
+            email: this.options_.from_email,
+            name: this.options_.from_name
+           },  // Corrected: Wrap 'From' in 'sender' object
           to: [{ email: orderData.customer.email }],  // Corrected: 'to' should be an array of objects
           templateId: options.template,  // Ensure this is the correct template ID
           params: {
@@ -369,7 +379,10 @@ class BrevoService extends NotificationService {
       return false;
 
     const sendOptions = {
-      sender: { email: this.options_.from },  // Correct structure for sender
+      sender: { 
+        email: this.options_.from_email,
+        name: this.options_.from_name
+       },  // Correct structure for sender
       to: [{ email: data.email ?? data?.customer?.email }],  // Correct structure for recipient
       templateId: templateId,
       params: {
