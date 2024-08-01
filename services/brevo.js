@@ -98,7 +98,8 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
             case 3:
               emailData = {
                 sender: {
-                  email: this.options_.from
+                  email: this.options_.from_email,
+                  name: this.options_.from_name
                 },
                 // Use sender from options
                 to: [{
@@ -240,7 +241,8 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                       items = _this2.processItems_(cart.items, cart !== null && cart !== void 0 && (_cart$region = cart.region) !== null && _cart$region !== void 0 && _cart$region.includes_tax ? 0 : (cart === null || cart === void 0 || (_cart$region2 = cart.region) === null || _cart$region2 === void 0 ? void 0 : _cart$region2.tax_rate) / 100, cart === null || cart === void 0 || (_cart$region3 = cart.region) === null || _cart$region3 === void 0 ? void 0 : _cart$region3.currency_code.toUpperCase());
                       sendOptions = {
                         sender: {
-                          email: _this2.options_.from
+                          email: _this2.options_.from_email,
+                          name: _this2.options_.from_name
                         },
                         // Wrap 'From' in a 'sender' object with 'email'
                         to: [{
@@ -459,7 +461,8 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                       }
                       sendOptions = {
                         sender: {
-                          email: _this3.options_.from
+                          email: _this3.options_.from_email,
+                          name: _this3.options_.from_name
                         },
                         // Corrected: Wrap 'From' in 'sender' object
                         to: [{
@@ -747,7 +750,8 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
             case 24:
               sendOptions = {
                 sender: {
-                  email: this.options_.from
+                  email: this.options_.from_email,
+                  name: this.options_.from_name
                 },
                 // Correct structure for sender
                 to: [{
