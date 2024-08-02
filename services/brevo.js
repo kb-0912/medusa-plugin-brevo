@@ -75,27 +75,70 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
     // Initialize Brevo client
     _this.client_ = new Brevo.TransactionalEmailsApi();
     _this.client_.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, options.api_key);
+    _this.contactsClient_ = new Brevo.ContactsApi();
+    _this.contactsClient_.setApiKey(Brevo.ContactsApiApiKeys.apiKey, options.api_key);
     return _this;
   }
   _inherits(BrevoService, _NotificationService);
   return _createClass(BrevoService, [{
-    key: "sendEmail",
+    key: "addCustomerToContactList",
     value: function () {
-      var _sendEmail = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(sendOptions) {
-        var emailData, response;
+      var _addCustomerToContactList = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(customer) {
+        var _this$options_, _this$options_2, _this$options_3;
+        var contactData, response;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              // Log the sender email for debugging
-              console.log("Sender Email:", this.options_.from);
-
-              // Ensure the sender email is set
-              if (this.options_.from) {
-                _context.next = 3;
+              if (!(!((_this$options_ = this.options_) !== null && _this$options_ !== void 0 && _this$options_.contact_list) || !((_this$options_2 = this.options_) !== null && _this$options_2 !== void 0 && (_this$options_2 = _this$options_2.contact_list) !== null && _this$options_2 !== void 0 && _this$options_2.enabled) || !((_this$options_3 = this.options_) !== null && _this$options_3 !== void 0 && (_this$options_3 = _this$options_3.contact_list) !== null && _this$options_3 !== void 0 && _this$options_3.contact_list_id))) {
+                _context.next = 2;
+                break;
+              }
+              return _context.abrupt("return");
+            case 2:
+              contactData = {
+                email: customer.email,
+                attributes: {
+                  FNAME: customer.first_name,
+                  LNAME: customer.last_name
+                },
+                listIds: [this.options_.contact_list.contact_list_id] // Ensure this is an array
+              };
+              _context.prev = 3;
+              _context.next = 6;
+              return contactsClient_.createContact(contactData);
+            case 6:
+              response = _context.sent;
+              return _context.abrupt("return", response);
+            case 10:
+              _context.prev = 10;
+              _context.t0 = _context["catch"](3);
+              console.error("Error adding customer to Brevo contact list:", _context.t0);
+              throw _context.t0;
+            case 14:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, this, [[3, 10]]);
+      }));
+      function addCustomerToContactList(_x) {
+        return _addCustomerToContactList.apply(this, arguments);
+      }
+      return addCustomerToContactList;
+    }()
+  }, {
+    key: "sendEmail",
+    value: function () {
+      var _sendEmail = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(sendOptions) {
+        var emailData, response;
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              if (this.options_.from_email) {
+                _context2.next = 2;
                 break;
               }
               throw new Error("Sender email is not defined in options.");
-            case 3:
+            case 2:
               emailData = {
                 sender: {
                   email: this.options_.from_email,
@@ -108,24 +151,24 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 templateId: sendOptions.TemplateId,
                 params: sendOptions.TemplateModel
               };
-              _context.prev = 4;
-              _context.next = 7;
+              _context2.prev = 3;
+              _context2.next = 6;
               return this.client_.sendTransacEmail(emailData);
-            case 7:
-              response = _context.sent;
-              return _context.abrupt("return", response);
-            case 11:
-              _context.prev = 11;
-              _context.t0 = _context["catch"](4);
-              console.error("Error sending email with Brevo:", _context.t0);
-              throw _context.t0;
-            case 15:
+            case 6:
+              response = _context2.sent;
+              return _context2.abrupt("return", response);
+            case 10:
+              _context2.prev = 10;
+              _context2.t0 = _context2["catch"](3);
+              console.error("Error sending email with Brevo:", _context2.t0);
+              throw _context2.t0;
+            case 14:
             case "end":
-              return _context.stop();
+              return _context2.stop();
           }
-        }, _callee, this, [[4, 11]]);
+        }, _callee2, this, [[3, 10]]);
       }));
-      function sendEmail(_x) {
+      function sendEmail(_x2) {
         return _sendEmail.apply(this, arguments);
       }
       return sendEmail;
@@ -133,74 +176,74 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "getAbandonedCarts",
     value: function () {
-      var _getAbandonedCarts = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
-        var _this$options_,
-          _this$options_2,
-          _this$options_3,
-          _this$options_4,
+      var _getAbandonedCarts = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+        var _this$options_4,
+          _this$options_5,
+          _this$options_6,
+          _this$options_7,
           _options$first,
           _options$second,
           _options$third,
           _this2 = this;
         var options, now, firstCheck, secondCheck, thirdCheck, cartRepository, lineItemRepository, carts, abandonedCarts, _iterator, _step, _cart$metadata4, cart, orderCheck, cartData, _loop, _i, _abandonedCarts;
-        return _regeneratorRuntime().wrap(function _callee5$(_context6) {
-          while (1) switch (_context6.prev = _context6.next) {
+        return _regeneratorRuntime().wrap(function _callee6$(_context7) {
+          while (1) switch (_context7.prev = _context7.next) {
             case 0:
-              if (!(!((_this$options_ = this.options_) !== null && _this$options_ !== void 0 && _this$options_.abandoned_cart) || !((_this$options_2 = this.options_) !== null && _this$options_2 !== void 0 && (_this$options_2 = _this$options_2.abandoned_cart) !== null && _this$options_2 !== void 0 && _this$options_2.enabled) || !((_this$options_3 = this.options_) !== null && _this$options_3 !== void 0 && (_this$options_3 = _this$options_3.abandoned_cart) !== null && _this$options_3 !== void 0 && _this$options_3.first))) {
-                _context6.next = 2;
+              if (!(!((_this$options_4 = this.options_) !== null && _this$options_4 !== void 0 && _this$options_4.abandoned_cart) || !((_this$options_5 = this.options_) !== null && _this$options_5 !== void 0 && (_this$options_5 = _this$options_5.abandoned_cart) !== null && _this$options_5 !== void 0 && _this$options_5.enabled) || !((_this$options_6 = this.options_) !== null && _this$options_6 !== void 0 && (_this$options_6 = _this$options_6.abandoned_cart) !== null && _this$options_6 !== void 0 && _this$options_6.first))) {
+                _context7.next = 2;
                 break;
               }
-              return _context6.abrupt("return");
+              return _context7.abrupt("return");
             case 2:
               console.log("Getting abandoned carts");
-              options = (_this$options_4 = this.options_) === null || _this$options_4 === void 0 ? void 0 : _this$options_4.abandoned_cart;
+              options = (_this$options_7 = this.options_) === null || _this$options_7 === void 0 ? void 0 : _this$options_7.abandoned_cart;
               now = new Date();
               firstCheck = new Date(now.getTime() - parseInt(options === null || options === void 0 || (_options$first = options.first) === null || _options$first === void 0 ? void 0 : _options$first.delay) * 60 * 60 * 1000);
               secondCheck = new Date(now.getTime() - parseInt(options === null || options === void 0 || (_options$second = options.second) === null || _options$second === void 0 ? void 0 : _options$second.delay) * 60 * 60 * 1000);
               thirdCheck = new Date(now.getTime() - parseInt(options === null || options === void 0 || (_options$third = options.third) === null || _options$third === void 0 ? void 0 : _options$third.delay) * 60 * 60 * 1000);
               cartRepository = this.manager_.withRepository(this.cartRepository_);
               lineItemRepository = this.manager_.withRepository(this.lineItemRepository_);
-              _context6.next = 12;
+              _context7.next = 12;
               return cartRepository.findBy({
                 email: (0, _typeorm.Not)((0, _typeorm.IsNull)())
               });
             case 12:
-              carts = _context6.sent;
+              carts = _context7.sent;
               console.log("Checking carts");
               abandonedCarts = [];
               _iterator = _createForOfIteratorHelper(carts);
-              _context6.prev = 16;
+              _context7.prev = 16;
               _iterator.s();
             case 18:
               if ((_step = _iterator.n()).done) {
-                _context6.next = 38;
+                _context7.next = 38;
                 break;
               }
               cart = _step.value;
               orderCheck = false;
-              _context6.prev = 21;
-              _context6.next = 24;
+              _context7.prev = 21;
+              _context7.next = 24;
               return this.orderService_.retrieveByCartId(cart.id);
             case 24:
-              orderCheck = _context6.sent;
-              _context6.next = 30;
+              orderCheck = _context7.sent;
+              _context7.next = 30;
               break;
             case 27:
-              _context6.prev = 27;
-              _context6.t0 = _context6["catch"](21);
+              _context7.prev = 27;
+              _context7.t0 = _context7["catch"](21);
               orderCheck = false;
             case 30:
-              _context6.next = 32;
+              _context7.next = 32;
               return this.cartService_.retrieve(cart.id, {
                 relations: ["items", "shipping_address", "region"]
               });
             case 32:
-              cartData = _context6.sent;
+              cartData = _context7.sent;
               if (!orderCheck) {
-                _context6.next = 35;
+                _context7.next = 35;
                 break;
               }
-              return _context6.abrupt("continue", 36);
+              return _context7.abrupt("continue", 36);
             case 35:
               if (cartData.items.find(function (li) {
                 return (li === null || li === void 0 ? void 0 : li.updated_at) <= firstCheck;
@@ -208,31 +251,31 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 abandonedCarts.push(cartData);
               }
             case 36:
-              _context6.next = 18;
+              _context7.next = 18;
               break;
             case 38:
-              _context6.next = 43;
+              _context7.next = 43;
               break;
             case 40:
-              _context6.prev = 40;
-              _context6.t1 = _context6["catch"](16);
-              _iterator.e(_context6.t1);
+              _context7.prev = 40;
+              _context7.t1 = _context7["catch"](16);
+              _iterator.e(_context7.t1);
             case 43:
-              _context6.prev = 43;
+              _context7.prev = 43;
               _iterator.f();
-              return _context6.finish(43);
+              return _context7.finish(43);
             case 46:
               if (!(abandonedCarts.length === 0)) {
-                _context6.next = 48;
+                _context7.next = 48;
                 break;
               }
-              return _context6.abrupt("return");
+              return _context7.abrupt("return");
             case 48:
               _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop() {
                 var _cart$region, _cart$region2, _cart$region3;
                 var cart, check, items, sendOptions, _options$third2, _cart$metadata, _options$third3, _options$second2, _cart$metadata2, _options$second3, _options$first2, _cart$metadata3, _options$first3;
-                return _regeneratorRuntime().wrap(function _loop$(_context5) {
-                  while (1) switch (_context5.prev = _context5.next) {
+                return _regeneratorRuntime().wrap(function _loop$(_context6) {
+                  while (1) switch (_context6.prev = _context6.next) {
                     case 0:
                       cart = _abandonedCarts[_i];
                       check = cart.items.sort(function (a, b) {
@@ -256,52 +299,19 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                         }, _this2.options_.default_data)
                       };
                       if (!(check < secondCheck)) {
-                        _context5.next = 18;
+                        _context6.next = 18;
                         break;
                       }
                       if (!(check < thirdCheck)) {
-                        _context5.next = 12;
+                        _context6.next = 12;
                         break;
                       }
                       if (!(options !== null && options !== void 0 && (_options$third2 = options.third) !== null && _options$third2 !== void 0 && _options$third2.template && (cart === null || cart === void 0 || (_cart$metadata = cart.metadata) === null || _cart$metadata === void 0 ? void 0 : _cart$metadata.third_abandonedcart_mail) !== true)) {
-                        _context5.next = 10;
+                        _context6.next = 10;
                         break;
                       }
                       sendOptions.TemplateId = options === null || options === void 0 || (_options$third3 = options.third) === null || _options$third3 === void 0 ? void 0 : _options$third3.template;
-                      _context5.next = 10;
-                      return _this2.sendEmail(sendOptions).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-                        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-                          while (1) switch (_context2.prev = _context2.next) {
-                            case 0:
-                              _context2.next = 2;
-                              return cartRepository.update(cart.id, {
-                                metadata: _objectSpread(_objectSpread({}, cart.metadata || {}), {}, {
-                                  third_abandonedcart_mail: true
-                                })
-                              });
-                            case 2:
-                            case "end":
-                              return _context2.stop();
-                          }
-                        }, _callee2);
-                      })))["catch"](function (error) {
-                        console.error(error);
-                        return {
-                          to: sendOptions.to,
-                          status: 'failed',
-                          data: sendOptions
-                        };
-                      });
-                    case 10:
-                      _context5.next = 16;
-                      break;
-                    case 12:
-                      if (!(options !== null && options !== void 0 && (_options$second2 = options.second) !== null && _options$second2 !== void 0 && _options$second2.template && (cart === null || cart === void 0 || (_cart$metadata2 = cart.metadata) === null || _cart$metadata2 === void 0 ? void 0 : _cart$metadata2.second_abandonedcart_mail) !== true)) {
-                        _context5.next = 16;
-                        break;
-                      }
-                      sendOptions.TemplateId = options === null || options === void 0 || (_options$second3 = options.second) === null || _options$second3 === void 0 ? void 0 : _options$second3.template;
-                      _context5.next = 16;
+                      _context6.next = 10;
                       return _this2.sendEmail(sendOptions).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
                         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
                           while (1) switch (_context3.prev = _context3.next) {
@@ -309,7 +319,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                               _context3.next = 2;
                               return cartRepository.update(cart.id, {
                                 metadata: _objectSpread(_objectSpread({}, cart.metadata || {}), {}, {
-                                  second_abandonedcart_mail: true
+                                  third_abandonedcart_mail: true
                                 })
                               });
                             case 2:
@@ -325,16 +335,16 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                           data: sendOptions
                         };
                       });
-                    case 16:
-                      _context5.next = 22;
+                    case 10:
+                      _context6.next = 16;
                       break;
-                    case 18:
-                      if (!(options !== null && options !== void 0 && (_options$first2 = options.first) !== null && _options$first2 !== void 0 && _options$first2.template && (cart === null || cart === void 0 || (_cart$metadata3 = cart.metadata) === null || _cart$metadata3 === void 0 ? void 0 : _cart$metadata3.first_abandonedcart_mail) !== true)) {
-                        _context5.next = 22;
+                    case 12:
+                      if (!(options !== null && options !== void 0 && (_options$second2 = options.second) !== null && _options$second2 !== void 0 && _options$second2.template && (cart === null || cart === void 0 || (_cart$metadata2 = cart.metadata) === null || _cart$metadata2 === void 0 ? void 0 : _cart$metadata2.second_abandonedcart_mail) !== true)) {
+                        _context6.next = 16;
                         break;
                       }
-                      sendOptions.TemplateId = options === null || options === void 0 || (_options$first3 = options.first) === null || _options$first3 === void 0 ? void 0 : _options$first3.template;
-                      _context5.next = 22;
+                      sendOptions.TemplateId = options === null || options === void 0 || (_options$second3 = options.second) === null || _options$second3 === void 0 ? void 0 : _options$second3.template;
+                      _context6.next = 16;
                       return _this2.sendEmail(sendOptions).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
                         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                           while (1) switch (_context4.prev = _context4.next) {
@@ -342,7 +352,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                               _context4.next = 2;
                               return cartRepository.update(cart.id, {
                                 metadata: _objectSpread(_objectSpread({}, cart.metadata || {}), {}, {
-                                  first_abandonedcart_mail: true
+                                  second_abandonedcart_mail: true
                                 })
                               });
                             case 2:
@@ -358,28 +368,61 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                           data: sendOptions
                         };
                       });
+                    case 16:
+                      _context6.next = 22;
+                      break;
+                    case 18:
+                      if (!(options !== null && options !== void 0 && (_options$first2 = options.first) !== null && _options$first2 !== void 0 && _options$first2.template && (cart === null || cart === void 0 || (_cart$metadata3 = cart.metadata) === null || _cart$metadata3 === void 0 ? void 0 : _cart$metadata3.first_abandonedcart_mail) !== true)) {
+                        _context6.next = 22;
+                        break;
+                      }
+                      sendOptions.TemplateId = options === null || options === void 0 || (_options$first3 = options.first) === null || _options$first3 === void 0 ? void 0 : _options$first3.template;
+                      _context6.next = 22;
+                      return _this2.sendEmail(sendOptions).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+                          while (1) switch (_context5.prev = _context5.next) {
+                            case 0:
+                              _context5.next = 2;
+                              return cartRepository.update(cart.id, {
+                                metadata: _objectSpread(_objectSpread({}, cart.metadata || {}), {}, {
+                                  first_abandonedcart_mail: true
+                                })
+                              });
+                            case 2:
+                            case "end":
+                              return _context5.stop();
+                          }
+                        }, _callee5);
+                      })))["catch"](function (error) {
+                        console.error(error);
+                        return {
+                          to: sendOptions.to,
+                          status: 'failed',
+                          data: sendOptions
+                        };
+                      });
                     case 22:
                     case "end":
-                      return _context5.stop();
+                      return _context6.stop();
                   }
                 }, _loop);
               });
               _i = 0, _abandonedCarts = abandonedCarts;
             case 50:
               if (!(_i < _abandonedCarts.length)) {
-                _context6.next = 55;
+                _context7.next = 55;
                 break;
               }
-              return _context6.delegateYield(_loop(), "t2", 52);
+              return _context7.delegateYield(_loop(), "t2", 52);
             case 52:
               _i++;
-              _context6.next = 50;
+              _context7.next = 50;
               break;
             case 55:
             case "end":
-              return _context6.stop();
+              return _context7.stop();
           }
-        }, _callee5, this, [[16, 40, 43, 46], [21, 27]]);
+        }, _callee6, this, [[16, 40, 43, 46], [21, 27]]);
       }));
       function getAbandonedCarts() {
         return _getAbandonedCarts.apply(this, arguments);
@@ -389,56 +432,56 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "remindUpsellOrders",
     value: function () {
-      var _remindUpsellOrders = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-        var _this$options_5,
-          _this$options_6,
-          _this$options_7,
-          _this$options_8,
+      var _remindUpsellOrders = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+        var _this$options_8,
           _this$options_9,
+          _this$options_10,
+          _this$options_11,
+          _this$options_12,
           _this3 = this;
         var orderRepo, options, validThrough, orders, _iterator2, _step2, _loop2;
-        return _regeneratorRuntime().wrap(function _callee7$(_context9) {
-          while (1) switch (_context9.prev = _context9.next) {
+        return _regeneratorRuntime().wrap(function _callee8$(_context10) {
+          while (1) switch (_context10.prev = _context10.next) {
             case 0:
-              if (!(!((_this$options_5 = this.options_) !== null && _this$options_5 !== void 0 && _this$options_5.upsell) || !((_this$options_6 = this.options_) !== null && _this$options_6 !== void 0 && (_this$options_6 = _this$options_6.upsell) !== null && _this$options_6 !== void 0 && _this$options_6.enabled) || !((_this$options_7 = this.options_) !== null && _this$options_7 !== void 0 && (_this$options_7 = _this$options_7.upsell) !== null && _this$options_7 !== void 0 && _this$options_7.collection) || !((_this$options_8 = this.options_) !== null && _this$options_8 !== void 0 && (_this$options_8 = _this$options_8.upsell) !== null && _this$options_8 !== void 0 && _this$options_8.delay) || !((_this$options_9 = this.options_) !== null && _this$options_9 !== void 0 && (_this$options_9 = _this$options_9.upsell) !== null && _this$options_9 !== void 0 && _this$options_9.template))) {
-                _context9.next = 2;
+              if (!(!((_this$options_8 = this.options_) !== null && _this$options_8 !== void 0 && _this$options_8.upsell) || !((_this$options_9 = this.options_) !== null && _this$options_9 !== void 0 && (_this$options_9 = _this$options_9.upsell) !== null && _this$options_9 !== void 0 && _this$options_9.enabled) || !((_this$options_10 = this.options_) !== null && _this$options_10 !== void 0 && (_this$options_10 = _this$options_10.upsell) !== null && _this$options_10 !== void 0 && _this$options_10.collection) || !((_this$options_11 = this.options_) !== null && _this$options_11 !== void 0 && (_this$options_11 = _this$options_11.upsell) !== null && _this$options_11 !== void 0 && _this$options_11.delay) || !((_this$options_12 = this.options_) !== null && _this$options_12 !== void 0 && (_this$options_12 = _this$options_12.upsell) !== null && _this$options_12 !== void 0 && _this$options_12.template))) {
+                _context10.next = 2;
                 break;
               }
-              return _context9.abrupt("return", []);
+              return _context10.abrupt("return", []);
             case 2:
               orderRepo = this.manager_.withRepository(this.orderRepository_);
               options = this.options_.upsell;
               validThrough = _luxon.DateTime.now().minus({
                 days: options.valid
               }).toLocaleString(_luxon.DateTime.DATE_FULL);
-              _context9.next = 7;
+              _context10.next = 7;
               return orderRepo.findBy({
                 created_at: (0, _typeorm.LessThan)(new Date(new Date().getTime() - parseInt(options.delay) * 60 * 60 * 24 * 1000))
               });
             case 7:
-              orders = _context9.sent;
+              orders = _context10.sent;
               _iterator2 = _createForOfIteratorHelper(orders);
-              _context9.prev = 9;
+              _context10.prev = 9;
               _loop2 = /*#__PURE__*/_regeneratorRuntime().mark(function _loop2() {
                 var _order$metadata;
                 var order, orderData, upsell, _iterator3, _step3, _item$variant, item, sendOptions;
-                return _regeneratorRuntime().wrap(function _loop2$(_context8) {
-                  while (1) switch (_context8.prev = _context8.next) {
+                return _regeneratorRuntime().wrap(function _loop2$(_context9) {
+                  while (1) switch (_context9.prev = _context9.next) {
                     case 0:
                       order = _step2.value;
                       if (!((_order$metadata = order.metadata) !== null && _order$metadata !== void 0 && _order$metadata.upsell_sent || order.created_at < new Date(new Date().getTime() - parseInt(options.delay) * 60 * 60 * 24 * 1000))) {
-                        _context8.next = 3;
+                        _context9.next = 3;
                         break;
                       }
-                      return _context8.abrupt("return", 1);
+                      return _context9.abrupt("return", 1);
                     case 3:
-                      _context8.next = 5;
+                      _context9.next = 5;
                       return _this3.orderService_.retrieve(order.id, {
                         select: ["id"],
                         relations: ["customer", "items", "items.variant", "items.variant.product"]
                       });
                     case 5:
-                      orderData = _context8.sent;
+                      orderData = _context9.sent;
                       upsell = true;
                       _iterator3 = _createForOfIteratorHelper(orderData.items);
                       try {
@@ -452,7 +495,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                         _iterator3.f();
                       }
                       if (!upsell) {
-                        _context8.next = 15;
+                        _context9.next = 15;
                         break;
                       }
                       if (options.template.includes(",")) {
@@ -478,20 +521,20 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                       order.metadata = _objectSpread(_objectSpread({}, order.metadata), {}, {
                         upsell_sent: true
                       });
-                      _context8.next = 15;
-                      return _this3.sendEmail(sendOptions).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-                        return _regeneratorRuntime().wrap(function _callee6$(_context7) {
-                          while (1) switch (_context7.prev = _context7.next) {
+                      _context9.next = 15;
+                      return _this3.sendEmail(sendOptions).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+                        return _regeneratorRuntime().wrap(function _callee7$(_context8) {
+                          while (1) switch (_context8.prev = _context8.next) {
                             case 0:
-                              _context7.next = 2;
+                              _context8.next = 2;
                               return _this3.orderService_.update(order.id, {
                                 metadata: order.metadata
                               });
                             case 2:
                             case "end":
-                              return _context7.stop();
+                              return _context8.stop();
                           }
-                        }, _callee6);
+                        }, _callee7);
                       })))["catch"](function (error) {
                         console.error(error);
                         return {
@@ -502,42 +545,42 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                       });
                     case 15:
                     case "end":
-                      return _context8.stop();
+                      return _context9.stop();
                   }
                 }, _loop2);
               });
               _iterator2.s();
             case 12:
               if ((_step2 = _iterator2.n()).done) {
-                _context9.next = 18;
+                _context10.next = 18;
                 break;
               }
-              return _context9.delegateYield(_loop2(), "t0", 14);
+              return _context10.delegateYield(_loop2(), "t0", 14);
             case 14:
-              if (!_context9.t0) {
-                _context9.next = 16;
+              if (!_context10.t0) {
+                _context10.next = 16;
                 break;
               }
-              return _context9.abrupt("continue", 16);
+              return _context10.abrupt("continue", 16);
             case 16:
-              _context9.next = 12;
+              _context10.next = 12;
               break;
             case 18:
-              _context9.next = 23;
+              _context10.next = 23;
               break;
             case 20:
-              _context9.prev = 20;
-              _context9.t1 = _context9["catch"](9);
-              _iterator2.e(_context9.t1);
+              _context10.prev = 20;
+              _context10.t1 = _context10["catch"](9);
+              _iterator2.e(_context10.t1);
             case 23:
-              _context9.prev = 23;
+              _context10.prev = 23;
               _iterator2.f();
-              return _context9.finish(23);
+              return _context10.finish(23);
             case 26:
             case "end":
-              return _context9.stop();
+              return _context10.stop();
           }
-        }, _callee7, this, [[9, 20, 23, 26]]);
+        }, _callee8, this, [[9, 20, 23, 26]]);
       }));
       function remindUpsellOrders() {
         return _remindUpsellOrders.apply(this, arguments);
@@ -547,51 +590,51 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "fetchAttachments",
     value: function () {
-      var _fetchAttachments = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(event, data, attachmentGenerator) {
-        var attachments, base64, _data$return_request, shipping_method, shipping_data, provider, lbl, _base, _this$options_$pdf$en, _this$options_10, _base2;
-        return _regeneratorRuntime().wrap(function _callee8$(_context10) {
-          while (1) switch (_context10.prev = _context10.next) {
+      var _fetchAttachments = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(event, data, attachmentGenerator) {
+        var attachments, base64, _data$return_request, shipping_method, shipping_data, provider, lbl, _base, _this$options_$pdf$en, _this$options_13, _base2;
+        return _regeneratorRuntime().wrap(function _callee9$(_context11) {
+          while (1) switch (_context11.prev = _context11.next) {
             case 0:
               attachments = [];
-              _context10.t0 = event;
-              _context10.next = _context10.t0 === "user.password_reset" ? 4 : _context10.t0 === "swap.created" ? 16 : _context10.t0 === "order.return_requested" ? 16 : _context10.t0 === "order.placed" ? 41 : 54;
+              _context11.t0 = event;
+              _context11.next = _context11.t0 === "user.password_reset" ? 4 : _context11.t0 === "swap.created" ? 16 : _context11.t0 === "order.return_requested" ? 16 : _context11.t0 === "order.placed" ? 41 : 54;
               break;
             case 4:
-              _context10.prev = 4;
+              _context11.prev = 4;
               if (!(attachmentGenerator && attachmentGenerator.createPasswordReset)) {
-                _context10.next = 10;
+                _context11.next = 10;
                 break;
               }
-              _context10.next = 8;
+              _context11.next = 8;
               return attachmentGenerator.createPasswordReset();
             case 8:
-              base64 = _context10.sent;
+              base64 = _context11.sent;
               attachments.push({
                 name: "password-reset.pdf",
                 base64: base64,
                 type: "application/pdf"
               });
             case 10:
-              _context10.next = 15;
+              _context11.next = 15;
               break;
             case 12:
-              _context10.prev = 12;
-              _context10.t1 = _context10["catch"](4);
-              console.error(_context10.t1);
+              _context11.prev = 12;
+              _context11.t1 = _context11["catch"](4);
+              console.error(_context11.t1);
             case 15:
-              return _context10.abrupt("return", attachments);
+              return _context11.abrupt("return", attachments);
             case 16:
-              _context10.prev = 16;
+              _context11.prev = 16;
               _data$return_request = data.return_request, shipping_method = _data$return_request.shipping_method, shipping_data = _data$return_request.shipping_data;
               if (!shipping_method) {
-                _context10.next = 24;
+                _context11.next = 24;
                 break;
               }
               provider = shipping_method.shipping_option.provider_id;
-              _context10.next = 22;
+              _context11.next = 22;
               return this.fulfillmentProviderService_.retrieveDocuments(provider, shipping_data, "label");
             case 22:
-              lbl = _context10.sent;
+              lbl = _context11.sent;
               attachments = attachments.concat(lbl.map(function (d) {
                 return {
                   name: "return-label.pdf",
@@ -600,70 +643,70 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 };
               }));
             case 24:
-              _context10.next = 29;
+              _context11.next = 29;
               break;
             case 26:
-              _context10.prev = 26;
-              _context10.t2 = _context10["catch"](16);
-              console.error(_context10.t2);
+              _context11.prev = 26;
+              _context11.t2 = _context11["catch"](16);
+              console.error(_context11.t2);
             case 29:
-              _context10.prev = 29;
+              _context11.prev = 29;
               if (!(attachmentGenerator && attachmentGenerator.createReturnInvoice)) {
-                _context10.next = 35;
+                _context11.next = 35;
                 break;
               }
-              _context10.next = 33;
+              _context11.next = 33;
               return attachmentGenerator.createReturnInvoice(data.order, data.return_request.items);
             case 33:
-              _base = _context10.sent;
+              _base = _context11.sent;
               attachments.push({
                 name: "invoice.pdf",
                 base64: _base,
                 type: "application/pdf"
               });
             case 35:
-              _context10.next = 40;
+              _context11.next = 40;
               break;
             case 37:
-              _context10.prev = 37;
-              _context10.t3 = _context10["catch"](29);
-              console.error(_context10.t3);
+              _context11.prev = 37;
+              _context11.t3 = _context11["catch"](29);
+              console.error(_context11.t3);
             case 40:
-              return _context10.abrupt("return", attachments);
+              return _context11.abrupt("return", attachments);
             case 41:
-              _context10.prev = 41;
-              if (!(((_this$options_$pdf$en = (_this$options_10 = this.options_) === null || _this$options_10 === void 0 || (_this$options_10 = _this$options_10.pdf) === null || _this$options_10 === void 0 ? void 0 : _this$options_10.enabled) !== null && _this$options_$pdf$en !== void 0 ? _this$options_$pdf$en : false) && attachmentGenerator && attachmentGenerator.createInvoice)) {
-                _context10.next = 47;
+              _context11.prev = 41;
+              if (!(((_this$options_$pdf$en = (_this$options_13 = this.options_) === null || _this$options_13 === void 0 || (_this$options_13 = _this$options_13.pdf) === null || _this$options_13 === void 0 ? void 0 : _this$options_13.enabled) !== null && _this$options_$pdf$en !== void 0 ? _this$options_$pdf$en : false) && attachmentGenerator && attachmentGenerator.createInvoice)) {
+                _context11.next = 47;
                 break;
               }
-              _context10.next = 45;
+              _context11.next = 45;
               return attachmentGenerator.createInvoice(this.options_, data);
             case 45:
-              _base2 = _context10.sent;
+              _base2 = _context11.sent;
               attachments.push({
                 name: "invoice.pdf",
                 base64: _base2,
                 type: "application/pdf"
               });
             case 47:
-              _context10.next = 53;
+              _context11.next = 53;
               break;
             case 49:
-              _context10.prev = 49;
-              _context10.t4 = _context10["catch"](41);
-              console.log('error ?', _context10.t4);
-              console.error(_context10.t4);
+              _context11.prev = 49;
+              _context11.t4 = _context11["catch"](41);
+              console.log('error ?', _context11.t4);
+              console.error(_context11.t4);
             case 53:
-              return _context10.abrupt("return", attachments);
+              return _context11.abrupt("return", attachments);
             case 54:
-              return _context10.abrupt("return", []);
+              return _context11.abrupt("return", []);
             case 55:
             case "end":
-              return _context10.stop();
+              return _context11.stop();
           }
-        }, _callee8, this, [[4, 12], [16, 26], [29, 37], [41, 49]]);
+        }, _callee9, this, [[4, 12], [16, 26], [29, 37], [41, 49]]);
       }));
-      function fetchAttachments(_x2, _x3, _x4) {
+      function fetchAttachments(_x3, _x4, _x5) {
         return _fetchAttachments.apply(this, arguments);
       }
       return fetchAttachments;
@@ -671,34 +714,34 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "fetchData",
     value: function () {
-      var _fetchData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(event, eventData, attachmentGenerator) {
-        return _regeneratorRuntime().wrap(function _callee9$(_context11) {
-          while (1) switch (_context11.prev = _context11.next) {
+      var _fetchData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(event, eventData, attachmentGenerator) {
+        return _regeneratorRuntime().wrap(function _callee10$(_context12) {
+          while (1) switch (_context12.prev = _context12.next) {
             case 0:
-              _context11.t0 = event;
-              _context11.next = _context11.t0 === "order.placed" ? 3 : _context11.t0 === "order.shipment_created" ? 4 : _context11.t0 === "order.canceled" ? 5 : _context11.t0 === "user.password_reset" ? 6 : _context11.t0 === "customer.password_reset" ? 7 : _context11.t0 === "gift_card.created" ? 8 : 9;
+              _context12.t0 = event;
+              _context12.next = _context12.t0 === "order.placed" ? 3 : _context12.t0 === "order.shipment_created" ? 4 : _context12.t0 === "order.canceled" ? 5 : _context12.t0 === "user.password_reset" ? 6 : _context12.t0 === "customer.password_reset" ? 7 : _context12.t0 === "gift_card.created" ? 8 : 9;
               break;
             case 3:
-              return _context11.abrupt("return", this.orderPlacedData(eventData, attachmentGenerator));
+              return _context12.abrupt("return", this.orderPlacedData(eventData, attachmentGenerator));
             case 4:
-              return _context11.abrupt("return", this.orderShipmentCreatedData(eventData, attachmentGenerator));
+              return _context12.abrupt("return", this.orderShipmentCreatedData(eventData, attachmentGenerator));
             case 5:
-              return _context11.abrupt("return", this.orderCanceledData(eventData, attachmentGenerator));
+              return _context12.abrupt("return", this.orderCanceledData(eventData, attachmentGenerator));
             case 6:
-              return _context11.abrupt("return", this.userPasswordResetData(eventData, attachmentGenerator));
+              return _context12.abrupt("return", this.userPasswordResetData(eventData, attachmentGenerator));
             case 7:
-              return _context11.abrupt("return", this.customerPasswordResetData(eventData, attachmentGenerator));
+              return _context12.abrupt("return", this.customerPasswordResetData(eventData, attachmentGenerator));
             case 8:
-              return _context11.abrupt("return", this.giftCardData(eventData, attachmentGenerator));
+              return _context12.abrupt("return", this.giftCardData(eventData, attachmentGenerator));
             case 9:
-              return _context11.abrupt("return", eventData);
+              return _context12.abrupt("return", eventData);
             case 10:
             case "end":
-              return _context11.stop();
+              return _context12.stop();
           }
-        }, _callee9, this);
+        }, _callee10, this);
       }));
-      function fetchData(_x5, _x6, _x7) {
+      function fetchData(_x6, _x7, _x8) {
         return _fetchData.apply(this, arguments);
       }
       return fetchData;
@@ -706,47 +749,47 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "sendNotification",
     value: function () {
-      var _sendNotification = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(event, eventData, attachmentGenerator) {
-        var _data$email, _data$customer, _this$options_11;
+      var _sendNotification = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(event, eventData, attachmentGenerator) {
+        var _data$email, _data$customer, _this$options_14;
         var group, action, event_, templateId, data, attachments, sendOptions;
-        return _regeneratorRuntime().wrap(function _callee10$(_context12) {
-          while (1) switch (_context12.prev = _context12.next) {
+        return _regeneratorRuntime().wrap(function _callee11$(_context13) {
+          while (1) switch (_context13.prev = _context13.next) {
             case 0:
               group = undefined;
               action = undefined;
-              _context12.prev = 2;
+              _context13.prev = 2;
               event_ = event.split(".", 2);
               group = event_[0];
               action = event_[1];
               if (!(typeof group === "undefined" || typeof action === "undefined" || this.options_.events[group] === undefined || this.options_.events[group][action] === undefined)) {
-                _context12.next = 8;
+                _context13.next = 8;
                 break;
               }
-              return _context12.abrupt("return", false);
+              return _context13.abrupt("return", false);
             case 8:
-              _context12.next = 14;
+              _context13.next = 14;
               break;
             case 10:
-              _context12.prev = 10;
-              _context12.t0 = _context12["catch"](2);
-              console.error(_context12.t0);
-              return _context12.abrupt("return", false);
+              _context13.prev = 10;
+              _context13.t0 = _context13["catch"](2);
+              console.error(_context13.t0);
+              return _context13.abrupt("return", false);
             case 14:
               templateId = this.options_.events[group][action];
-              _context12.next = 17;
+              _context13.next = 17;
               return this.fetchData(event, eventData, attachmentGenerator);
             case 17:
-              data = _context12.sent;
-              _context12.next = 20;
+              data = _context13.sent;
+              _context13.next = 20;
               return this.fetchAttachments(event, data, attachmentGenerator);
             case 20:
-              attachments = _context12.sent;
+              attachments = _context13.sent;
               if (data.locale && _typeof(templateId) === "object") templateId = templateId[data.locale] || Object.values(templateId)[0]; // Fallback to first template if locale is not found
               if (!(templateId === null)) {
-                _context12.next = 24;
+                _context13.next = 24;
                 break;
               }
-              return _context12.abrupt("return", false);
+              return _context13.abrupt("return", false);
             case 24:
               sendOptions = {
                 sender: {
@@ -761,7 +804,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 templateId: templateId,
                 params: _objectSpread(_objectSpread({}, data), this.options_.default_data)
               };
-              if ((_this$options_11 = this.options_) !== null && _this$options_11 !== void 0 && _this$options_11.bcc) sendOptions.Bcc = this.options_.bcc;
+              if ((_this$options_14 = this.options_) !== null && _this$options_14 !== void 0 && _this$options_14.bcc) sendOptions.Bcc = this.options_.bcc;
               if (attachments !== null && attachments !== void 0 && attachments.length) {
                 sendOptions.Attachments = attachments.map(function (a) {
                   return {
@@ -772,7 +815,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                   };
                 });
               }
-              _context12.next = 29;
+              _context13.next = 29;
               return this.client_.sendTransacEmail(sendOptions).then(function () {
                 return {
                   to: sendOptions.to,
@@ -788,14 +831,14 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 };
               });
             case 29:
-              return _context12.abrupt("return", _context12.sent);
+              return _context13.abrupt("return", _context13.sent);
             case 30:
             case "end":
-              return _context12.stop();
+              return _context13.stop();
           }
-        }, _callee10, this, [[2, 10]]);
+        }, _callee11, this, [[2, 10]]);
       }));
-      function sendNotification(_x8, _x9, _x10) {
+      function sendNotification(_x9, _x10, _x11) {
         return _sendNotification.apply(this, arguments);
       }
       return sendNotification;
@@ -803,18 +846,18 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "resendNotification",
     value: function () {
-      var _resendNotification = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(notification, config, attachmentGenerator) {
+      var _resendNotification = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12(notification, config, attachmentGenerator) {
         var sendOptions, attachs;
-        return _regeneratorRuntime().wrap(function _callee11$(_context13) {
-          while (1) switch (_context13.prev = _context13.next) {
+        return _regeneratorRuntime().wrap(function _callee12$(_context14) {
+          while (1) switch (_context14.prev = _context14.next) {
             case 0:
               sendOptions = _objectSpread(_objectSpread({}, notification.data), {}, {
                 To: config.to || notification.to
               });
-              _context13.next = 3;
+              _context14.next = 3;
               return this.fetchAttachments(notification.event_name, notification.data.dynamic_template_data, attachmentGenerator);
             case 3:
-              attachs = _context13.sent;
+              attachs = _context14.sent;
               sendOptions.attachments = attachs.map(function (a) {
                 return {
                   content: a.base64,
@@ -824,7 +867,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                   contentId: a.name
                 };
               });
-              _context13.next = 7;
+              _context14.next = 7;
               return this.client_.sendTransacEmail(sendOptions).then(function () {
                 return {
                   to: sendOptions.To,
@@ -840,14 +883,14 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 };
               });
             case 7:
-              return _context13.abrupt("return", _context13.sent);
+              return _context14.abrupt("return", _context14.sent);
             case 8:
             case "end":
-              return _context13.stop();
+              return _context14.stop();
           }
-        }, _callee11, this);
+        }, _callee12, this);
       }));
-      function resendNotification(_x11, _x12, _x13) {
+      function resendNotification(_x12, _x13, _x14) {
         return _resendNotification.apply(this, arguments);
       }
       return resendNotification;
@@ -855,28 +898,28 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "sendMail",
     value: function () {
-      var _sendMail = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12(options) {
-        return _regeneratorRuntime().wrap(function _callee12$(_context14) {
-          while (1) switch (_context14.prev = _context14.next) {
+      var _sendMail = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13(options) {
+        return _regeneratorRuntime().wrap(function _callee13$(_context15) {
+          while (1) switch (_context15.prev = _context15.next) {
             case 0:
-              _context14.prev = 0;
+              _context15.prev = 0;
               this.client_.sendTransacEmail(_objectSpread(_objectSpread({}, options), {}, {
                 params: _objectSpread(_objectSpread({}, options.TemplateModel), this.options_.default_data)
               }));
-              _context14.next = 8;
+              _context15.next = 8;
               break;
             case 4:
-              _context14.prev = 4;
-              _context14.t0 = _context14["catch"](0);
-              console.log(_context14.t0);
-              throw _context14.t0;
+              _context15.prev = 4;
+              _context15.t0 = _context15["catch"](0);
+              console.log(_context15.t0);
+              throw _context15.t0;
             case 8:
             case "end":
-              return _context14.stop();
+              return _context15.stop();
           }
-        }, _callee12, this, [[0, 4]]);
+        }, _callee13, this, [[0, 4]]);
       }));
-      function sendMail(_x14) {
+      function sendMail(_x15) {
         return _sendMail.apply(this, arguments);
       }
       return sendMail;
@@ -884,30 +927,30 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "orderShipmentCreatedData",
     value: function () {
-      var _orderShipmentCreatedData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13(_ref6, attachmentGenerator) {
+      var _orderShipmentCreatedData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14(_ref6, attachmentGenerator) {
         var id, fulfillment_id, order, shipment, locale;
-        return _regeneratorRuntime().wrap(function _callee13$(_context15) {
-          while (1) switch (_context15.prev = _context15.next) {
+        return _regeneratorRuntime().wrap(function _callee14$(_context16) {
+          while (1) switch (_context16.prev = _context16.next) {
             case 0:
               id = _ref6.id, fulfillment_id = _ref6.fulfillment_id;
-              _context15.next = 3;
+              _context16.next = 3;
               return this.orderService_.retrieve(id, {
                 select: ["shipping_total", "discount_total", "tax_total", "refunded_total", "gift_card_total", "subtotal", "total", "refundable_amount"],
                 relations: ["customer", "billing_address", "shipping_address", "discounts", "discounts.rule", "shipping_methods", "shipping_methods.shipping_option", "payments", "fulfillments", "returns", "gift_cards", "gift_card_transactions"]
               });
             case 3:
-              order = _context15.sent;
-              _context15.next = 6;
+              order = _context16.sent;
+              _context16.next = 6;
               return this.fulfillmentService_.retrieve(fulfillment_id, {
                 relations: ["items", "tracking_links"]
               });
             case 6:
-              shipment = _context15.sent;
-              _context15.next = 9;
+              shipment = _context16.sent;
+              _context16.next = 9;
               return this.extractLocale(order);
             case 9:
-              locale = _context15.sent;
-              return _context15.abrupt("return", {
+              locale = _context16.sent;
+              return _context16.abrupt("return", {
                 locale: locale,
                 order: order,
                 date: shipment.shipped_at.toDateString(),
@@ -918,11 +961,11 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
               });
             case 11:
             case "end":
-              return _context15.stop();
+              return _context16.stop();
           }
-        }, _callee13, this);
+        }, _callee14, this);
       }));
-      function orderShipmentCreatedData(_x15, _x16) {
+      function orderShipmentCreatedData(_x16, _x17) {
         return _orderShipmentCreatedData.apply(this, arguments);
       }
       return orderShipmentCreatedData;
@@ -930,19 +973,19 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "orderCanceledData",
     value: function () {
-      var _orderCanceledData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14(_ref7) {
+      var _orderCanceledData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15(_ref7) {
         var id, order, subtotal, tax_total, discount_total, shipping_total, gift_card_total, total, taxRate, currencyCode, items, discounts, giftCards, locale;
-        return _regeneratorRuntime().wrap(function _callee14$(_context16) {
-          while (1) switch (_context16.prev = _context16.next) {
+        return _regeneratorRuntime().wrap(function _callee15$(_context17) {
+          while (1) switch (_context17.prev = _context17.next) {
             case 0:
               id = _ref7.id;
-              _context16.next = 3;
+              _context17.next = 3;
               return this.orderService_.retrieve(id, {
                 select: ["shipping_total", "discount_total", "tax_total", "refunded_total", "gift_card_total", "subtotal", "total"],
                 relations: ["customer", "billing_address", "shipping_address", "discounts", "discounts.rule", "shipping_methods", "shipping_methods.shipping_option", "payments", "fulfillments", "returns", "gift_cards", "gift_card_transactions"]
               });
             case 3:
-              order = _context16.sent;
+              order = _context17.sent;
               subtotal = order.subtotal, tax_total = order.tax_total, discount_total = order.discount_total, shipping_total = order.shipping_total, gift_card_total = order.gift_card_total, total = order.total;
               taxRate = order.tax_rate / 100;
               currencyCode = order.currency_code.toUpperCase();
@@ -968,11 +1011,11 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 });
                 discounts.concat(giftCards);
               }
-              _context16.next = 14;
+              _context17.next = 14;
               return this.extractLocale(order);
             case 14:
-              locale = _context16.sent;
-              return _context16.abrupt("return", _objectSpread(_objectSpread({}, order), {}, {
+              locale = _context17.sent;
+              return _context17.abrupt("return", _objectSpread(_objectSpread({}, order), {}, {
                 locale: locale,
                 has_discounts: order.discounts.length,
                 has_gift_cards: order.gift_cards.length,
@@ -988,11 +1031,11 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
               }));
             case 16:
             case "end":
-              return _context16.stop();
+              return _context17.stop();
           }
-        }, _callee14, this);
+        }, _callee15, this);
       }));
-      function orderCanceledData(_x17) {
+      function orderCanceledData(_x18) {
         return _orderCanceledData.apply(this, arguments);
       }
       return orderCanceledData;
@@ -1000,29 +1043,29 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "giftCardData",
     value: function () {
-      var _giftCardData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15(_ref8) {
+      var _giftCardData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16(_ref8) {
         var _data$order$email;
         var id, data;
-        return _regeneratorRuntime().wrap(function _callee15$(_context17) {
-          while (1) switch (_context17.prev = _context17.next) {
+        return _regeneratorRuntime().wrap(function _callee16$(_context18) {
+          while (1) switch (_context18.prev = _context18.next) {
             case 0:
               id = _ref8.id;
-              _context17.next = 3;
+              _context18.next = 3;
               return this.giftCardService.retrieve(id, {
                 relations: ["order"]
               });
             case 3:
-              data = _context17.sent;
-              return _context17.abrupt("return", _objectSpread(_objectSpread({}, data), {}, {
+              data = _context18.sent;
+              return _context18.abrupt("return", _objectSpread(_objectSpread({}, data), {}, {
                 email: (_data$order$email = data.order.email) !== null && _data$order$email !== void 0 ? _data$order$email : ''
               }));
             case 5:
             case "end":
-              return _context17.stop();
+              return _context18.stop();
           }
-        }, _callee15, this);
+        }, _callee16, this);
       }));
-      function giftCardData(_x18) {
+      function giftCardData(_x19) {
         return _giftCardData.apply(this, arguments);
       }
       return giftCardData;
@@ -1030,52 +1073,52 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "orderPlacedData",
     value: function () {
-      var _orderPlacedData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17(_ref9) {
+      var _orderPlacedData = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18(_ref9) {
         var _this4 = this,
           _order$shipping_metho;
         var id, order, tax_total, shipping_total, gift_card_total, total, currencyCode, items, discounts, giftCards, locale, discountTotal, discounted_subtotal, subtotal, subtotal_ex_tax;
-        return _regeneratorRuntime().wrap(function _callee17$(_context19) {
-          while (1) switch (_context19.prev = _context19.next) {
+        return _regeneratorRuntime().wrap(function _callee18$(_context20) {
+          while (1) switch (_context20.prev = _context20.next) {
             case 0:
               id = _ref9.id;
-              _context19.next = 3;
+              _context20.next = 3;
               return this.orderService_.retrieve(id, {
                 select: ["shipping_total", "discount_total", "tax_total", "refunded_total", "gift_card_total", "subtotal", "total"],
                 relations: ["customer", "billing_address", "shipping_address", "discounts", "discounts.rule", "shipping_methods", "shipping_methods.shipping_option", "payments", "fulfillments", "returns", "gift_cards", "gift_card_transactions"]
               });
             case 3:
-              order = _context19.sent;
+              order = _context20.sent;
               tax_total = order.tax_total, shipping_total = order.shipping_total, gift_card_total = order.gift_card_total, total = order.total;
               currencyCode = order.currency_code.toUpperCase();
-              _context19.next = 8;
+              _context20.next = 8;
               return Promise.all(order.items.map( /*#__PURE__*/function () {
-                var _ref10 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16(i) {
-                  return _regeneratorRuntime().wrap(function _callee16$(_context18) {
-                    while (1) switch (_context18.prev = _context18.next) {
+                var _ref10 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17(i) {
+                  return _regeneratorRuntime().wrap(function _callee17$(_context19) {
+                    while (1) switch (_context19.prev = _context19.next) {
                       case 0:
-                        _context18.next = 2;
+                        _context19.next = 2;
                         return _this4.totalsService_.getLineItemTotals(i, order, {
                           include_tax: true,
                           use_tax_lines: true
                         });
                       case 2:
-                        i.totals = _context18.sent;
+                        i.totals = _context19.sent;
                         i.thumbnail = _this4.normalizeThumbUrl_(i.thumbnail);
                         i.discounted_price = "".concat(_this4.humanPrice_(i.totals.total / i.quantity, currencyCode), " ").concat(currencyCode);
                         i.price = "".concat(_this4.humanPrice_(i.totals.original_total / i.quantity, currencyCode), " ").concat(currencyCode);
-                        return _context18.abrupt("return", i);
+                        return _context19.abrupt("return", i);
                       case 7:
                       case "end":
-                        return _context18.stop();
+                        return _context19.stop();
                     }
-                  }, _callee16);
+                  }, _callee17);
                 }));
-                return function (_x20) {
+                return function (_x21) {
                   return _ref10.apply(this, arguments);
                 };
               }()));
             case 8:
-              items = _context19.sent;
+              items = _context20.sent;
               discounts = [];
               if (order.discounts) {
                 discounts = order.discounts.map(function (discount) {
@@ -1097,10 +1140,10 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
                 });
                 discounts.concat(giftCards);
               }
-              _context19.next = 15;
+              _context20.next = 15;
               return this.extractLocale(order);
             case 15:
-              locale = _context19.sent;
+              locale = _context20.sent;
               // Includes taxes in discount amount
               discountTotal = items.reduce(function (acc, i) {
                 return acc + i.totals.original_total - i.totals.total;
@@ -1114,7 +1157,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
               subtotal_ex_tax = items.reduce(function (total, i) {
                 return total + i.totals.subtotal;
               }, 0);
-              return _context19.abrupt("return", _objectSpread(_objectSpread({}, order), {}, {
+              return _context20.abrupt("return", _objectSpread(_objectSpread({}, order), {}, {
                 locale: locale,
                 has_discounts: order.discounts.length,
                 has_gift_cards: order.gift_cards.length,
@@ -1132,11 +1175,11 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
               }));
             case 21:
             case "end":
-              return _context19.stop();
+              return _context20.stop();
           }
-        }, _callee17, this);
+        }, _callee18, this);
       }));
-      function orderPlacedData(_x19) {
+      function orderPlacedData(_x20) {
         return _orderPlacedData.apply(this, arguments);
       }
       return orderPlacedData;
@@ -1178,45 +1221,45 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
   }, {
     key: "extractLocale",
     value: function () {
-      var _extractLocale = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18(fromOrder) {
+      var _extractLocale = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19(fromOrder) {
         var cart;
-        return _regeneratorRuntime().wrap(function _callee18$(_context20) {
-          while (1) switch (_context20.prev = _context20.next) {
+        return _regeneratorRuntime().wrap(function _callee19$(_context21) {
+          while (1) switch (_context21.prev = _context21.next) {
             case 0:
               if (!fromOrder.cart_id) {
-                _context20.next = 14;
+                _context21.next = 14;
                 break;
               }
-              _context20.prev = 1;
-              _context20.next = 4;
+              _context21.prev = 1;
+              _context21.next = 4;
               return this.cartService_.retrieve(fromOrder.cart_id, {
                 select: ["id", "context"]
               });
             case 4:
-              cart = _context20.sent;
+              cart = _context21.sent;
               if (!(cart.context && cart.context.locale)) {
-                _context20.next = 7;
+                _context21.next = 7;
                 break;
               }
-              return _context20.abrupt("return", cart.context.locale);
+              return _context21.abrupt("return", cart.context.locale);
             case 7:
-              _context20.next = 14;
+              _context21.next = 14;
               break;
             case 9:
-              _context20.prev = 9;
-              _context20.t0 = _context20["catch"](1);
-              console.log(_context20.t0);
+              _context21.prev = 9;
+              _context21.t0 = _context21["catch"](1);
+              console.log(_context21.t0);
               console.warn("Failed to gather context for order");
-              return _context20.abrupt("return", null);
+              return _context21.abrupt("return", null);
             case 14:
-              return _context20.abrupt("return", null);
+              return _context21.abrupt("return", null);
             case 15:
             case "end":
-              return _context20.stop();
+              return _context21.stop();
           }
-        }, _callee18, this, [[1, 9]]);
+        }, _callee19, this, [[1, 9]]);
       }));
-      function extractLocale(_x21) {
+      function extractLocale(_x22) {
         return _extractLocale.apply(this, arguments);
       }
       return extractLocale;

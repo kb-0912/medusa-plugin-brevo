@@ -65,7 +65,7 @@ class BrevoService extends NotificationService {
 
     try {
 
-      const response = await contactsClient_.createContact(contactData);
+      const response = await this.contactsClient_.createContact(contactData);
       return response;
     } catch (error) {
       console.error("Error adding customer to Brevo contact list:", error);
