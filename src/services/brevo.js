@@ -80,8 +80,8 @@ class BrevoService extends NotificationService {
         name: this.options_.from_name // Assuming this is set in your options
       },
       to: sendOptions.to,
-      templateId: sendOptions.TemplateId,
-      params: sendOptions.TemplateModel,
+      templateId: sendOptions.templateId,
+      params: sendOptions.params,
     };
   
     try {

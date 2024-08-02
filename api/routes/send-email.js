@@ -18,9 +18,10 @@ var _default = exports["default"] = /*#__PURE__*/function () {
         case 0:
           schema = _medusaCoreUtils.Validator.object().keys({
             TemplateId: _medusaCoreUtils.Validator.number().required(),
-            From: _medusaCoreUtils.Validator.string().email().required(),
-            FromName: _medusaCoreUtils.Validator.string().required(),
+            // TemplateId should be a number as per Brevo's requirements
+            From: _medusaCoreUtils.Validator.string().required(),
             To: _medusaCoreUtils.Validator.array().items(_medusaCoreUtils.Validator.string().email()).required(),
+            // Ensure 'To' is an array of valid email strings
             TemplateModel: _medusaCoreUtils.Validator.object().optional()["default"]({})
           });
           _schema$validate = schema.validate(req.body), value = _schema$validate.value, error = _schema$validate.error;
@@ -34,13 +35,13 @@ var _default = exports["default"] = /*#__PURE__*/function () {
           brevoService = req.scope.resolve("brevoService");
           _context.next = 8;
           return brevoService.sendEmail({
-            from_email: value.From,
-            from_name: value.FromName,
+            // From: value.From,
             to: value.To.map(function (email) {
               return {
                 email: email
               };
             }),
+            // Ensure each email is wrapped in an object
             TemplateId: value.TemplateId,
             TemplateModel: value.TemplateModel
           });
