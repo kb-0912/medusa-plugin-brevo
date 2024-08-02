@@ -105,7 +105,7 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
               };
               _context.prev = 3;
               _context.next = 6;
-              return contactsClient_.createContact(contactData);
+              return this.contactsClient_.createContact(contactData);
             case 6:
               response = _context.sent;
               return _context.abrupt("return", response);
@@ -133,40 +133,31 @@ var BrevoService = /*#__PURE__*/function (_NotificationService) {
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
-              if (this.options_.from_email) {
-                _context2.next = 2;
-                break;
-              }
-              throw new Error("Sender email is not defined in options.");
-            case 2:
               emailData = {
                 sender: {
-                  email: this.options_.from_email,
-                  name: this.options_.from_name
+                  email: sendOptions.from_email,
+                  name: this.options_.from_name // Assuming this is set in your options
                 },
-                // Use sender from options
-                to: [{
-                  email: sendOptions.to
-                }],
+                to: sendOptions.to,
                 templateId: sendOptions.TemplateId,
                 params: sendOptions.TemplateModel
               };
-              _context2.prev = 3;
-              _context2.next = 6;
+              _context2.prev = 1;
+              _context2.next = 4;
               return this.client_.sendTransacEmail(emailData);
-            case 6:
+            case 4:
               response = _context2.sent;
               return _context2.abrupt("return", response);
-            case 10:
-              _context2.prev = 10;
-              _context2.t0 = _context2["catch"](3);
+            case 8:
+              _context2.prev = 8;
+              _context2.t0 = _context2["catch"](1);
               console.error("Error sending email with Brevo:", _context2.t0);
               throw _context2.t0;
-            case 14:
+            case 12:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, this, [[3, 10]]);
+        }, _callee2, this, [[1, 8]]);
       }));
       function sendEmail(_x2) {
         return _sendEmail.apply(this, arguments);

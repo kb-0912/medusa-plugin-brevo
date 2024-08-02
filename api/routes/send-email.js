@@ -19,8 +19,10 @@ var _default = exports["default"] = /*#__PURE__*/function () {
           schema = _medusaCoreUtils.Validator.object().keys({
             TemplateId: _medusaCoreUtils.Validator.number().required(),
             // TemplateId should be a number as per Brevo's requirements
-            From: _medusaCoreUtils.Validator.string().required(),
-            To: _medusaCoreUtils.Validator.string().required(),
+            From: _medusaCoreUtils.Validator.string().email().required(),
+            // Validate From as a valid email
+            To: _medusaCoreUtils.Validator.array().items(_medusaCoreUtils.Validator.string().email()).required(),
+            // Ensure 'To' is an array of valid email strings
             TemplateModel: _medusaCoreUtils.Validator.object().optional()["default"]({})
           });
           _schema$validate = schema.validate(req.body), value = _schema$validate.value, error = _schema$validate.error;
@@ -31,12 +33,16 @@ var _default = exports["default"] = /*#__PURE__*/function () {
           throw new _medusaCoreUtils.MedusaError(_medusaCoreUtils.MedusaError.Types.INVALID_DATA, error.details);
         case 4:
           _context.prev = 4;
-          // Resolve the brevoService instead of postmarkService
-          brevoService = req.scope.resolve("brevoService"); // Pass the parameters according to the brevoService's sendEmail method
+          brevoService = req.scope.resolve("brevoService");
           _context.next = 8;
           return brevoService.sendEmail({
             From: value.From,
-            to: value.To,
+            to: value.To.map(function (email) {
+              return {
+                email: email
+              };
+            }),
+            // Ensure each email is wrapped in an object
             TemplateId: value.TemplateId,
             TemplateModel: value.TemplateModel
           });

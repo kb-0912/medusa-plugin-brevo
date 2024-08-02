@@ -2,9 +2,10 @@ import { Validator, MedusaError } from "medusa-core-utils";
 
 export default async (req, res) => {
   const schema = Validator.object().keys({
-    TemplateId: Validator.number().required(),  // TemplateId should be a number as per Brevo's requirements
-    From: Validator.string().email().required(),  // Validate From as a valid email
-    To: Validator.array().items(Validator.string().email()).required(),  // Ensure 'To' is an array of valid email strings
+    TemplateId: Validator.number().required(),
+    From: Validator.string().email().required(),
+    FromName: Validator.string().required(),     
+    To: Validator.array().items(Validator.string().email()).required(),
     TemplateModel: Validator.object().optional().default({}),
   });
 
@@ -17,8 +18,9 @@ export default async (req, res) => {
     const brevoService = req.scope.resolve("brevoService");
 
     await brevoService.sendEmail({
-      From: value.From,
-      to: value.To.map(email => ({ email })),  // Ensure each email is wrapped in an object
+      from_email: value.From,       
+      from_name: value.FromName,    
+      to: value.To.map(email => ({ email })),
       TemplateId: value.TemplateId,
       TemplateModel: value.TemplateModel,
     });
