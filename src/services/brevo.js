@@ -76,8 +76,8 @@ class BrevoService extends NotificationService {
   async sendEmail(sendOptions) {
     const emailData = {
       sender: { 
-        email: sendOptions.from_email,
-        name: sendOptions.from_name // Use the sender's name from the options
+        email: this.options_.from_email,
+        name: this.options_.from_name // Assuming this is set in your options
       },
       to: sendOptions.to,
       templateId: sendOptions.TemplateId,
@@ -92,6 +92,8 @@ class BrevoService extends NotificationService {
       throw error;
     }
   }
+  
+  
   
 
 
