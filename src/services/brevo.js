@@ -45,14 +45,38 @@ class BrevoService extends NotificationService {
     // Initialize Brevo client
     this.client_ = new Brevo.TransactionalEmailsApi();
     this.client_.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, options.api_key);
+    this.contactsClient_ = new Brevo.ContactsApi();
+    this.contactsClient_.setApiKey(Brevo.ContactsApiApiKeys.apiKey, options.api_key);
+
+  }
+
+  async addCustomerToContactList(customer) {
+    if (!this.options_?.contact_list || !this.options_?.contact_list?.enabled || !this.options_?.contact_list?.contact_list_id) {
+      return;
+    }
+    const contactData = {
+      email: customer.email,
+      attributes: {
+        FNAME: customer.first_name,
+        LNAME: customer.last_name,
+      },
+      listIds: [this.options_.contact_list.contact_list_id],  // Ensure this is an array
+    };
+
+    try {
+
+      const response = await contactsClient_.createContact(contactData);
+      return response;
+    } catch (error) {
+      console.error("Error adding customer to Brevo contact list:", error);
+      throw error;
+    }
   }
 
   async sendEmail(sendOptions) {
-    // Log the sender email for debugging
-    console.log("Sender Email:", this.options_.from);
-
+   
     // Ensure the sender email is set
-    if (!this.options_.from) {
+    if (!this.options_.from_email) {
       throw new Error("Sender email is not defined in options.");
     }
 

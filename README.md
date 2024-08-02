@@ -26,6 +26,12 @@ const plugins = [
             from_email: process.env.BREVO_FROM_EMAIL,
             from_name: process.env.BREVO_FROM_NAME,
             bcc: process.env.BREVO_BCC || null,
+            
+            contact_list: {
+            enabled: process.env.BREVO_CONTACT_LIST_ENABLED || true,
+            contact_list_id: process.env.BREVO_CONTACT_LIST_ID || 2
+            },
+
             pdf: {
                 enabled: process.env.BREVO_PDF_ENABLED || false,
                 settings: {
