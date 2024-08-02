@@ -74,23 +74,16 @@ class BrevoService extends NotificationService {
   }
 
   async sendEmail(sendOptions) {
-   
-    // Ensure the sender email is set
-    if (!this.options_.from_email) {
-      throw new Error("Sender email is not defined in options.");
-    }
-
     const emailData = {
       sender: { 
-        email: this.options_.from_email,
-        name: this.options_.from_name
-
-       }, // Use sender from options
-      to: [{ email: sendOptions.to }],
+        email: sendOptions.from_email,
+        name: this.options_.from_name // Assuming this is set in your options
+      },
+      to: sendOptions.to,
       templateId: sendOptions.TemplateId,
       params: sendOptions.TemplateModel,
     };
-
+  
     try {
       const response = await this.client_.sendTransacEmail(emailData);
       return response;
@@ -99,6 +92,8 @@ class BrevoService extends NotificationService {
       throw error;
     }
   }
+  
+
 
   async getAbandonedCarts() {
     if (!this.options_?.abandoned_cart || !this.options_?.abandoned_cart?.enabled || !this.options_?.abandoned_cart?.first) {
