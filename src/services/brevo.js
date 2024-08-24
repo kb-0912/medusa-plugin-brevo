@@ -357,6 +357,7 @@ class BrevoService extends NotificationService {
       case "order.placed":
         return this.orderPlacedData(eventData, attachmentGenerator);
       case "order.shipment_created":
+        //console.log(this.orderShipmentCreatedData(eventData, attachmentGenerator))
         return this.orderShipmentCreatedData(eventData, attachmentGenerator);
       case "order.canceled":
         return this.orderCanceledData(eventData, attachmentGenerator);
@@ -524,7 +525,9 @@ class BrevoService extends NotificationService {
     });
 
     const tracking_numbers = shipment.tracking_links.map(link => link.tracking_number).join(", ");
-  
+    
+    const locale = await this.extractLocale(order)
+
    
     //console.log('Tracking Number:', tracking_numbers);
    
@@ -822,7 +825,7 @@ class BrevoService extends NotificationService {
         const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
           select: ["id", "context"],
         });
-        console.log("Cart retrieved:", cart); // Log the cart data
+        //console.log("Cart retrieved:", cart); // Log the cart data
         if (cart.context && cart.context.locale)
           return cart.context.locale;
       } catch (err) {

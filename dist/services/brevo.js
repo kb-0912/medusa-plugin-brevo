@@ -343,6 +343,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             case "order.placed":
                 return this.orderPlacedData(eventData, attachmentGenerator);
             case "order.shipment_created":
+                console.log(this.orderShipmentCreatedData(eventData, attachmentGenerator));
                 return this.orderShipmentCreatedData(eventData, attachmentGenerator);
             case "order.canceled":
                 return this.orderCanceledData(eventData, attachmentGenerator);
@@ -491,6 +492,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             relations: ["items", "tracking_links"],
         });
         const tracking_numbers = shipment.tracking_links.map(link => link.tracking_number).join(", ");
+        const locale = await this.extractLocale(order);
         //console.log('Tracking Number:', tracking_numbers);
         return {
             locale,
