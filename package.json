@@ -1,6 +1,6 @@
 {
   "name": "medusa-plugin-brevo-email",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Brevo notification plugin for MedusaJS",
   "main": "index.js",
   "repository": {
