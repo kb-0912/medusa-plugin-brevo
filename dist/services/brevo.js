@@ -491,7 +491,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             relations: ["items", "tracking_links"],
         });
         const tracking_numbers = shipment.tracking_links.map(link => link.tracking_number).join(", ");
-        console.log('Tracking Number:', tracking_numbers);
+        //console.log('Tracking Number:', tracking_numbers);
         return {
             locale,
             order,
