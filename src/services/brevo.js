@@ -478,8 +478,11 @@ class BrevoService extends NotificationService {
   }
 
   async orderShipmentCreatedData({ id, fulfillment_id }, attachmentGenerator) {
+    // Fetch the full order details using the order ID
     const order = await this.orderService_.retrieve(id, {
       select: [
+        "id",
+        "email",
         "shipping_total",
         "discount_total",
         "tax_total",
@@ -488,6 +491,12 @@ class BrevoService extends NotificationService {
         "subtotal",
         "total",
         "refundable_amount",
+        "created_at",
+        "updated_at",
+        "customer_id",
+        "currency_code",
+        "tax_rate",
+        "cart_id"
       ],
       relations: [
         "customer",
@@ -502,25 +511,35 @@ class BrevoService extends NotificationService {
         "returns",
         "gift_cards",
         "gift_card_transactions",
+        "region",
+        "items",
+        "items.variant",
+        "items.variant.product"
       ],
     });
-
+  
+    // Fetch the shipment details using the fulfillment ID
     const shipment = await this.fulfillmentService_.retrieve(fulfillment_id, {
       relations: ["items", "tracking_links"],
     });
 
-    const locale = await this.extractLocale(order);
-
+    const tracking_numbers = shipment.tracking_links.map(link => link.tracking_number).join(", ");
+  
+   
+    //console.log('Tracking Number:', tracking_numbers);
+   
+  
     return {
       locale,
       order,
-      date: shipment.shipped_at.toDateString(),
+      date: shipment.shipped_at.toLocaleString(),
       email: order.email,
       fulfillment: shipment,
       tracking_links: shipment.tracking_links,
-      tracking_number: shipment.tracking_numbers.join(", "),
+      tracking_number: tracking_numbers,
     };
   }
+  
 
   async orderCanceledData({ id }) {
     const order = await this.orderService_.retrieve(id, {
@@ -596,7 +615,7 @@ class BrevoService extends NotificationService {
       locale,
       has_discounts: order.discounts.length,
       has_gift_cards: order.gift_cards.length,
-      date: order.created_at.toDateString(),
+      date: order.created_at.toLocaleString(),
       items,
       discounts,
       subtotal: `${this.humanPrice_(
@@ -728,7 +747,7 @@ class BrevoService extends NotificationService {
       locale,
       has_discounts: order.discounts.length,
       has_gift_cards: order.gift_cards.length,
-      date: order.created_at.toDateString(),
+      date: order.created_at.toLocaleString(),
       items,
       discounts,
       subtotal_ex_tax: `${this.humanPrice_(
@@ -803,7 +822,7 @@ class BrevoService extends NotificationService {
         const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
           select: ["id", "context"],
         });
-
+        console.log("Cart retrieved:", cart); // Log the cart data
         if (cart.context && cart.context.locale)
           return cart.context.locale;
       } catch (err) {
@@ -814,6 +833,7 @@ class BrevoService extends NotificationService {
     }
     return null;
   }
+  
 }
 
 export default BrevoService;
