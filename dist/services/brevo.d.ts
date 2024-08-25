@@ -80,7 +80,7 @@ declare class BrevoService {
     userPasswordResetData(data: any): any;
     customerPasswordResetData(data: any): any;
     processItems_(items: any, taxRate: any, currencyCode: any): any;
-    humanPrice_(amount: any, currency: any): string;
+    humanPrice_(amount: any, currencyCode: any): string;
     normalizeThumbUrl_(url: any): any;
     extractLocale(fromOrder: any): Promise<any>;
 }

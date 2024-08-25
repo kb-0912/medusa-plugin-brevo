@@ -128,7 +128,7 @@ class BrevoService extends NotificationService {
       }
     }
     if (abandonedCarts.length === 0) return;
-
+  
     for (const cart of abandonedCarts) {
       const check = cart.items.sort((a, b) => {
         return b.updated_at.getTime() - a.updated_at.getTime();
@@ -138,20 +138,20 @@ class BrevoService extends NotificationService {
         sender: { 
           email: this.options_.from_email,
           name: this.options_.from_name
-         },  // Wrap 'From' in a 'sender' object with 'email'
+        },  // Wrap 'From' in a 'sender' object with 'email'
         to: [{ email: cart.email }],  // 'to' should be an array of objects with 'email'
-        templateId: 0,  // Assuming '0' is a placeholder for the actual template ID
+        templateId: 0,  // Placeholder, this will be overwritten below
         params: {
           ...cart,
           items,
           ...this.options_.default_data
         }
       };
-      
+  
       if (check < secondCheck) {
         if (check < thirdCheck) {
           if (options?.third?.template && cart?.metadata?.third_abandonedcart_mail !== true) {
-            sendOptions.TemplateId = options?.third?.template;
+            sendOptions.templateId = Number(options?.third?.template);  // Ensure the template ID is a number
             await this.sendEmail(sendOptions)
               .then(async () => {
                 await cartRepository.update(cart.id, {
@@ -168,7 +168,7 @@ class BrevoService extends NotificationService {
           }
         } else {
           if (options?.second?.template && cart?.metadata?.second_abandonedcart_mail !== true) {
-            sendOptions.TemplateId = options?.second?.template;
+            sendOptions.templateId = Number(options?.second?.template);  // Ensure the template ID is a number
             await this.sendEmail(sendOptions)
               .then(async () => {
                 await cartRepository.update(cart.id, {
@@ -186,7 +186,7 @@ class BrevoService extends NotificationService {
         }
       } else {
         if (options?.first?.template && cart?.metadata?.first_abandonedcart_mail !== true) {
-          sendOptions.TemplateId = options?.first?.template;
+          sendOptions.templateId = Number(options?.first?.template);  // Ensure the template ID is a number
           await this.sendEmail(sendOptions)
             .then(async () => {
               await cartRepository.update(cart.id, {
@@ -204,6 +204,7 @@ class BrevoService extends NotificationService {
       }
     }
   }
+  
 
   async remindUpsellOrders() {
     if (!this.options_?.upsell || !this.options_?.upsell?.enabled || !this.options_?.upsell?.collection || !this.options_?.upsell?.delay || !this.options_?.upsell?.template) {
@@ -357,7 +358,7 @@ class BrevoService extends NotificationService {
       case "order.placed":
         return this.orderPlacedData(eventData, attachmentGenerator);
       case "order.shipment_created":
-        //console.log(this.orderShipmentCreatedData(eventData, attachmentGenerator))
+        //console.log('orderShipmentCreatedData log:',this.orderShipmentCreatedData(eventData, attachmentGenerator))
         return this.orderShipmentCreatedData(eventData, attachmentGenerator);
       case "order.canceled":
         return this.orderCanceledData(eventData, attachmentGenerator);
@@ -388,6 +389,7 @@ class BrevoService extends NotificationService {
 
     let templateId = this.options_.events[group][action];
     const data = await this.fetchData(event, eventData, attachmentGenerator);
+    console.log('Data', data)
     const attachments = await this.fetchAttachments(
       event,
       data,
@@ -412,6 +414,7 @@ class BrevoService extends NotificationService {
         ...this.options_.default_data
       }
     };
+    console.log('sendOptions', sendOptions)
     if (this.options_?.bcc)
       sendOptions.Bcc = this.options_.bcc;
 
@@ -745,6 +748,8 @@ class BrevoService extends NotificationService {
       return total + i.totals.subtotal;
     }, 0);
 
+
+    console.log(`TOTAL ${this.humanPrice_(total, currencyCode)} ${currencyCode}`,)
     return {
       ...order,
       locale,
@@ -800,13 +805,20 @@ class BrevoService extends NotificationService {
     });
   }
 
-  humanPrice_(amount, currency) {
+  humanPrice_(amount, currencyCode) {
     if (!amount)
       return "0.00";
-    const normalized = humanizeAmount(amount, currency);
-    return normalized.toFixed(
-      zeroDecimalCurrencies.includes(currency.toLowerCase()) ? 0 : 2
-    );
+    const normalizedAmount = humanizeAmount(amount, currencyCode);
+
+    const formatter = new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currencyCode,
+      // Remove decimals for all currencies
+      minimumFractionDigits: 0,
+     
+    });
+
+    return formatter.format(normalizedAmount);
   }
 
   normalizeThumbUrl_(url) {

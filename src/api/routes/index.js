@@ -12,5 +12,12 @@ export default (app) => {
     bodyParser.raw({ type: "application/json" }),
     middlewares.wrap(require("./send-email").default)
   )
+
+   // New route to debug getAbandonedCarts method
+   route.get(
+    "/abandone-cart",
+    middlewares.wrap(require("./abandone-cart").default)
+  )
   return app
+
 }

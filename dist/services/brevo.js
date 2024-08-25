@@ -141,7 +141,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                     name: this.options_.from_name
                 }, // Wrap 'From' in a 'sender' object with 'email'
                 to: [{ email: cart.email }], // 'to' should be an array of objects with 'email'
-                templateId: 0, // Assuming '0' is a placeholder for the actual template ID
+                templateId: 0, // Placeholder, this will be overwritten below
                 params: {
                     ...cart,
                     items,
@@ -151,7 +151,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             if (check < secondCheck) {
                 if (check < thirdCheck) {
                     if (((_p = options === null || options === void 0 ? void 0 : options.third) === null || _p === void 0 ? void 0 : _p.template) && ((_q = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _q === void 0 ? void 0 : _q.third_abandonedcart_mail) !== true) {
-                        sendOptions.TemplateId = (_r = options === null || options === void 0 ? void 0 : options.third) === null || _r === void 0 ? void 0 : _r.template;
+                        sendOptions.templateId = Number((_r = options === null || options === void 0 ? void 0 : options.third) === null || _r === void 0 ? void 0 : _r.template); // Ensure the template ID is a number
                         await this.sendEmail(sendOptions)
                             .then(async () => {
                             await cartRepository.update(cart.id, {
@@ -169,7 +169,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 }
                 else {
                     if (((_s = options === null || options === void 0 ? void 0 : options.second) === null || _s === void 0 ? void 0 : _s.template) && ((_t = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _t === void 0 ? void 0 : _t.second_abandonedcart_mail) !== true) {
-                        sendOptions.TemplateId = (_u = options === null || options === void 0 ? void 0 : options.second) === null || _u === void 0 ? void 0 : _u.template;
+                        sendOptions.templateId = Number((_u = options === null || options === void 0 ? void 0 : options.second) === null || _u === void 0 ? void 0 : _u.template); // Ensure the template ID is a number
                         await this.sendEmail(sendOptions)
                             .then(async () => {
                             await cartRepository.update(cart.id, {
@@ -188,7 +188,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             }
             else {
                 if (((_v = options === null || options === void 0 ? void 0 : options.first) === null || _v === void 0 ? void 0 : _v.template) && ((_w = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _w === void 0 ? void 0 : _w.first_abandonedcart_mail) !== true) {
-                    sendOptions.TemplateId = (_x = options === null || options === void 0 ? void 0 : options.first) === null || _x === void 0 ? void 0 : _x.template;
+                    sendOptions.templateId = Number((_x = options === null || options === void 0 ? void 0 : options.first) === null || _x === void 0 ? void 0 : _x.template); // Ensure the template ID is a number
                     await this.sendEmail(sendOptions)
                         .then(async () => {
                         await cartRepository.update(cart.id, {
@@ -343,7 +343,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             case "order.placed":
                 return this.orderPlacedData(eventData, attachmentGenerator);
             case "order.shipment_created":
-                console.log(this.orderShipmentCreatedData(eventData, attachmentGenerator));
+                //console.log('orderShipmentCreatedData log:',this.orderShipmentCreatedData(eventData, attachmentGenerator))
                 return this.orderShipmentCreatedData(eventData, attachmentGenerator);
             case "order.canceled":
                 return this.orderCanceledData(eventData, attachmentGenerator);
@@ -374,6 +374,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         }
         let templateId = this.options_.events[group][action];
         const data = await this.fetchData(event, eventData, attachmentGenerator);
+        console.log('Data', data);
         const attachments = await this.fetchAttachments(event, data, attachmentGenerator);
         if (data.locale && typeof templateId === "object")
             templateId = templateId[data.locale] || Object.values(templateId)[0]; // Fallback to first template if locale is not found
@@ -391,6 +392,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 ...this.options_.default_data
             }
         };
+        console.log('sendOptions', sendOptions);
         if ((_c = this.options_) === null || _c === void 0 ? void 0 : _c.bcc)
             sendOptions.Bcc = this.options_.bcc;
         if (attachments === null || attachments === void 0 ? void 0 : attachments.length) {
@@ -654,6 +656,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         const subtotal_ex_tax = items.reduce((total, i) => {
             return total + i.totals.subtotal;
         }, 0);
+        console.log(`TOTAL ${this.humanPrice_(total, currencyCode)} ${currencyCode}`);
         return {
             ...order,
             locale,
@@ -687,11 +690,18 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             };
         });
     }
-    humanPrice_(amount, currency) {
+    humanPrice_(amount, currencyCode) {
         if (!amount)
             return "0.00";
-        const normalized = (0, medusa_core_utils_1.humanizeAmount)(amount, currency);
-        return normalized.toFixed(medusa_core_utils_1.zeroDecimalCurrencies.includes(currency.toLowerCase()) ? 0 : 2);
+        const normalizedAmount = (0, medusa_core_utils_1.humanizeAmount)(amount, currencyCode);
+        const formatter = new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: currencyCode,
+            // Remove decimals for all currencies
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        });
+        return formatter.format(normalizedAmount);
     }
     normalizeThumbUrl_(url) {
         if (!url)
@@ -708,7 +718,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
                     select: ["id", "context"],
                 });
-                console.log("Cart retrieved:", cart); // Log the cart data
+                //console.log("Cart retrieved:", cart); // Log the cart data
                 if (cart.context && cart.context.locale)
                     return cart.context.locale;
             }

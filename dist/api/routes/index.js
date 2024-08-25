@@ -10,5 +10,7 @@ const route = (0, express_1.Router)();
 exports.default = (app) => {
     app.use("/brevo", route);
     route.post("/send", body_parser_1.default.raw({ type: "application/json" }), middleware_1.default.wrap(require("./send-email").default));
+    // New route to debug getAbandonedCarts method
+    route.get("/abandone-cart", middleware_1.default.wrap(require("./abandone-cart").default));
     return app;
 };
