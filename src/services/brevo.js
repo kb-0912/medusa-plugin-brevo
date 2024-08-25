@@ -389,7 +389,7 @@ class BrevoService extends NotificationService {
 
     let templateId = this.options_.events[group][action];
     const data = await this.fetchData(event, eventData, attachmentGenerator);
-    console.log('Data', data)
+    //console.log('Data', data)
     const attachments = await this.fetchAttachments(
       event,
       data,

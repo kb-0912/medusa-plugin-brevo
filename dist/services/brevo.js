@@ -699,7 +699,6 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             currency: currencyCode,
             // Remove decimals for all currencies
             minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
         });
         return formatter.format(normalizedAmount);
     }
