@@ -42,7 +42,7 @@ declare class BrevoService {
             to: {
                 email: any;
             }[];
-            templateId: any;
+            templateId: number;
             params: any;
         };
     }>;
@@ -60,7 +60,10 @@ declare class BrevoService {
         id: any;
         fulfillment_id: any;
     }, attachmentGenerator: any): Promise<{
-        locale: any;
+        locale: {
+            locale: any;
+            countryCode: any;
+        };
         order: any;
         date: any;
         email: any;
@@ -82,6 +85,10 @@ declare class BrevoService {
     processItems_(items: any, taxRate: any, currencyCode: any): any;
     humanPrice_(amount: any, currencyCode: any): string;
     normalizeThumbUrl_(url: any): any;
-    extractLocale(fromOrder: any): Promise<any>;
+    OLDextractLocale(fromOrder: any): Promise<any>;
+    extractLocale(fromOrder: any): Promise<{
+        locale: any;
+        countryCode: any;
+    }>;
 }
 import * as Brevo from "@getbrevo/brevo";

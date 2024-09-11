@@ -80,7 +80,7 @@ class BrevoService extends NotificationService {
         name: this.options_.from_name // Assuming this is set in your options
       },
       to: sendOptions.to,
-      templateId: sendOptions.templateId,
+      templateId: Number(sendOptions.templateId),
       params: sendOptions.params,
     };
   
@@ -134,6 +134,8 @@ class BrevoService extends NotificationService {
         return b.updated_at.getTime() - a.updated_at.getTime();
       })[0].updated_at;
       const items = this.processItems_(cart.items, cart?.region?.includes_tax ? 0 : (cart?.region?.tax_rate / 100), cart?.region?.currency_code.toUpperCase());
+
+
       const sendOptions = {
         sender: { 
           email: this.options_.from_email,
@@ -147,6 +149,32 @@ class BrevoService extends NotificationService {
           ...this.options_.default_data
         }
       };
+
+       // Use this.options_.events[group][action] to get templateId based on the abandoned cart stage
+    let templateId;
+    const group = "abandoned_cart"; // Set group for abandoned cart emails
+    const action = check < thirdCheck
+      ? "third"
+      : check < secondCheck
+      ? "second"
+      : "first"; // Determine which abandoned cart email to send
+
+    templateId = this.options_.events?.[group]?.[action];
+
+    // Check if templateId is an object (with locale or countryCode mappings) or a single ID
+    if (typeof templateId === "object") {
+      // Prioritize countryCode over locale
+      if (countryCode && templateId[countryCode]) {
+        templateId = templateId[countryCode];
+      } else if (locale && templateId[locale]) {
+        templateId = templateId[locale];
+      } else {
+        templateId = Object.values(templateId)[0]; // Fallback to the first template
+      }
+    }
+
+    sendOptions.templateId = Number(templateId); // Ensure the template ID is a number
+
   
       if (check < secondCheck) {
         if (check < thirdCheck) {
@@ -387,7 +415,6 @@ class BrevoService extends NotificationService {
       return false;
     }
 
-    let templateId = this.options_.events[group][action];
     const data = await this.fetchData(event, eventData, attachmentGenerator);
     //console.log('Data', data)
     const attachments = await this.fetchAttachments(
@@ -396,9 +423,20 @@ class BrevoService extends NotificationService {
       attachmentGenerator
     );
 
-    if (data.locale && typeof templateId === "object")
-      templateId = templateId[data.locale] || Object.values(templateId)[0]; // Fallback to first template if locale is not found
+    let templateId = this.options_.events[group][action];
 
+    if (typeof templateId === "object") {
+      // Prioritize countryCode over locale
+      if (data.locale?.countryCode && templateId[data.locale.countryCode]) {
+        templateId = templateId[data.locale.countryCode];
+      } else if (data.locale?.locale && templateId[data.locale.locale]) {
+        templateId = templateId[data.locale.locale];
+      } else {
+        templateId = Object.values(templateId)[0]; // Fallback to the first template if no match
+      }
+    }
+       
+  
     if (templateId === null)
       return false;
 
@@ -408,13 +446,13 @@ class BrevoService extends NotificationService {
         name: this.options_.from_name
        },  // Correct structure for sender
       to: [{ email: data.email ?? data?.customer?.email }],  // Correct structure for recipient
-      templateId: templateId,
+      templateId: Number(templateId),
       params: {
         ...data,
         ...this.options_.default_data
       }
     };
-    console.log('sendOptions', sendOptions)
+    //console.log('sendOptions', sendOptions)
     if (this.options_?.bcc)
       sendOptions.Bcc = this.options_.bcc;
 
@@ -749,7 +787,7 @@ class BrevoService extends NotificationService {
     }, 0);
 
 
-    console.log(`TOTAL ${this.humanPrice_(total, currencyCode)} ${currencyCode}`,)
+    //console.log(`TOTAL ${this.humanPrice_(total, currencyCode)} ${currencyCode}`,)
     return {
       ...order,
       locale,
@@ -831,7 +869,7 @@ class BrevoService extends NotificationService {
     return url;
   }
 
-  async extractLocale(fromOrder) {
+  async OLDextractLocale(fromOrder) {
     if (fromOrder.cart_id) {
       try {
         const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
@@ -847,6 +885,28 @@ class BrevoService extends NotificationService {
       }
     }
     return null;
+  }
+
+  async extractLocale(fromOrder) {
+    if (fromOrder.cart_id) {
+      try {
+        const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
+          select: ["id", "context"],
+        });
+  
+        // Extract locale and countryCode from cart context
+        const { locale, countryCode } = cart.context || {};
+  
+        if (locale || countryCode) {
+          return { locale, countryCode };
+        }
+      } catch (err) {
+        console.log(err);
+        console.warn("Failed to gather context for order");
+        return { locale: null, countryCode: null };
+      }
+    }
+    return { locale: null, countryCode: null };
   }
   
 }

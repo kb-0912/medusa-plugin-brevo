@@ -19,7 +19,7 @@ export default async (req, res) => {
     await brevoService.sendEmail({
      // From: value.From,
       to: value.To.map(email => ({ email })),  // Ensure each email is wrapped in an object
-      TemplateId: value.TemplateId,
+      TemplateId: parseInt(value.TemplateId, 10), // Ensure TemplateId is an integer
       TemplateModel: value.TemplateModel,
     });
 

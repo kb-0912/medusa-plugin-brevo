@@ -96,7 +96,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         }
     }
     async getAbandonedCarts() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
         if (!((_a = this.options_) === null || _a === void 0 ? void 0 : _a.abandoned_cart) || !((_c = (_b = this.options_) === null || _b === void 0 ? void 0 : _b.abandoned_cart) === null || _c === void 0 ? void 0 : _c.enabled) || !((_e = (_d = this.options_) === null || _d === void 0 ? void 0 : _d.abandoned_cart) === null || _e === void 0 ? void 0 : _e.first)) {
             return;
         }
@@ -148,10 +148,33 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                     ...this.options_.default_data
                 }
             };
+            // Use this.options_.events[group][action] to get templateId based on the abandoned cart stage
+            let templateId;
+            const group = "abandoned_cart"; // Set group for abandoned cart emails
+            const action = check < thirdCheck
+                ? "third"
+                : check < secondCheck
+                    ? "second"
+                    : "first"; // Determine which abandoned cart email to send
+            templateId = (_q = (_p = this.options_.events) === null || _p === void 0 ? void 0 : _p[group]) === null || _q === void 0 ? void 0 : _q[action];
+            // Check if templateId is an object (with locale or countryCode mappings) or a single ID
+            if (typeof templateId === "object") {
+                // Prioritize countryCode over locale
+                if (countryCode && templateId[countryCode]) {
+                    templateId = templateId[countryCode];
+                }
+                else if (locale && templateId[locale]) {
+                    templateId = templateId[locale];
+                }
+                else {
+                    templateId = Object.values(templateId)[0]; // Fallback to the first template
+                }
+            }
+            sendOptions.templateId = Number(templateId); // Ensure the template ID is a number
             if (check < secondCheck) {
                 if (check < thirdCheck) {
-                    if (((_p = options === null || options === void 0 ? void 0 : options.third) === null || _p === void 0 ? void 0 : _p.template) && ((_q = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _q === void 0 ? void 0 : _q.third_abandonedcart_mail) !== true) {
-                        sendOptions.templateId = Number((_r = options === null || options === void 0 ? void 0 : options.third) === null || _r === void 0 ? void 0 : _r.template); // Ensure the template ID is a number
+                    if (((_r = options === null || options === void 0 ? void 0 : options.third) === null || _r === void 0 ? void 0 : _r.template) && ((_s = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _s === void 0 ? void 0 : _s.third_abandonedcart_mail) !== true) {
+                        sendOptions.templateId = Number((_t = options === null || options === void 0 ? void 0 : options.third) === null || _t === void 0 ? void 0 : _t.template); // Ensure the template ID is a number
                         await this.sendEmail(sendOptions)
                             .then(async () => {
                             await cartRepository.update(cart.id, {
@@ -168,8 +191,8 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                     }
                 }
                 else {
-                    if (((_s = options === null || options === void 0 ? void 0 : options.second) === null || _s === void 0 ? void 0 : _s.template) && ((_t = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _t === void 0 ? void 0 : _t.second_abandonedcart_mail) !== true) {
-                        sendOptions.templateId = Number((_u = options === null || options === void 0 ? void 0 : options.second) === null || _u === void 0 ? void 0 : _u.template); // Ensure the template ID is a number
+                    if (((_u = options === null || options === void 0 ? void 0 : options.second) === null || _u === void 0 ? void 0 : _u.template) && ((_v = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _v === void 0 ? void 0 : _v.second_abandonedcart_mail) !== true) {
+                        sendOptions.templateId = Number((_w = options === null || options === void 0 ? void 0 : options.second) === null || _w === void 0 ? void 0 : _w.template); // Ensure the template ID is a number
                         await this.sendEmail(sendOptions)
                             .then(async () => {
                             await cartRepository.update(cart.id, {
@@ -187,8 +210,8 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 }
             }
             else {
-                if (((_v = options === null || options === void 0 ? void 0 : options.first) === null || _v === void 0 ? void 0 : _v.template) && ((_w = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _w === void 0 ? void 0 : _w.first_abandonedcart_mail) !== true) {
-                    sendOptions.templateId = Number((_x = options === null || options === void 0 ? void 0 : options.first) === null || _x === void 0 ? void 0 : _x.template); // Ensure the template ID is a number
+                if (((_x = options === null || options === void 0 ? void 0 : options.first) === null || _x === void 0 ? void 0 : _x.template) && ((_y = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _y === void 0 ? void 0 : _y.first_abandonedcart_mail) !== true) {
+                    sendOptions.templateId = Number((_z = options === null || options === void 0 ? void 0 : options.first) === null || _z === void 0 ? void 0 : _z.template); // Ensure the template ID is a number
                     await this.sendEmail(sendOptions)
                         .then(async () => {
                         await cartRepository.update(cart.id, {
@@ -358,7 +381,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         }
     }
     async sendNotification(event, eventData, attachmentGenerator) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         let group = undefined;
         let action = undefined;
         try {
@@ -372,12 +395,22 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             console.error(err);
             return false;
         }
-        let templateId = this.options_.events[group][action];
         const data = await this.fetchData(event, eventData, attachmentGenerator);
-        console.log('Data', data);
+        //console.log('Data', data)
         const attachments = await this.fetchAttachments(event, data, attachmentGenerator);
-        if (data.locale && typeof templateId === "object")
-            templateId = templateId[data.locale] || Object.values(templateId)[0]; // Fallback to first template if locale is not found
+        let templateId = this.options_.events[group][action];
+        if (typeof templateId === "object") {
+            // Prioritize countryCode over locale
+            if (((_a = data.locale) === null || _a === void 0 ? void 0 : _a.countryCode) && templateId[data.locale.countryCode]) {
+                templateId = templateId[data.locale.countryCode];
+            }
+            else if (((_b = data.locale) === null || _b === void 0 ? void 0 : _b.locale) && templateId[data.locale.locale]) {
+                templateId = templateId[data.locale.locale];
+            }
+            else {
+                templateId = Object.values(templateId)[0]; // Fallback to the first template if no match
+            }
+        }
         if (templateId === null)
             return false;
         const sendOptions = {
@@ -385,15 +418,15 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 email: this.options_.from_email,
                 name: this.options_.from_name
             }, // Correct structure for sender
-            to: [{ email: (_a = data.email) !== null && _a !== void 0 ? _a : (_b = data === null || data === void 0 ? void 0 : data.customer) === null || _b === void 0 ? void 0 : _b.email }], // Correct structure for recipient
-            templateId: templateId,
+            to: [{ email: (_c = data.email) !== null && _c !== void 0 ? _c : (_d = data === null || data === void 0 ? void 0 : data.customer) === null || _d === void 0 ? void 0 : _d.email }], // Correct structure for recipient
+            templateId: Number(templateId),
             params: {
                 ...data,
                 ...this.options_.default_data
             }
         };
         console.log('sendOptions', sendOptions);
-        if ((_c = this.options_) === null || _c === void 0 ? void 0 : _c.bcc)
+        if ((_e = this.options_) === null || _e === void 0 ? void 0 : _e.bcc)
             sendOptions.Bcc = this.options_.bcc;
         if (attachments === null || attachments === void 0 ? void 0 : attachments.length) {
             sendOptions.Attachments = attachments.map((a) => {
@@ -711,7 +744,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             return `https:${url}`;
         return url;
     }
-    async extractLocale(fromOrder) {
+    async OLDextractLocale(fromOrder) {
         if (fromOrder.cart_id) {
             try {
                 const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
@@ -728,6 +761,26 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
             }
         }
         return null;
+    }
+    async extractLocale(fromOrder) {
+        if (fromOrder.cart_id) {
+            try {
+                const cart = await this.cartService_.retrieve(fromOrder.cart_id, {
+                    select: ["id", "context"],
+                });
+                // Extract locale and countryCode from cart context
+                const { locale, countryCode } = cart.context || {};
+                if (locale || countryCode) {
+                    return { locale, countryCode };
+                }
+            }
+            catch (err) {
+                console.log(err);
+                console.warn("Failed to gather context for order");
+                return { locale: null, countryCode: null };
+            }
+        }
+        return { locale: null, countryCode: null };
     }
 }
 BrevoService.identifier = "brevo";
