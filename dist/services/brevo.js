@@ -83,7 +83,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 name: this.options_.from_name // Assuming this is set in your options
             },
             to: sendOptions.to,
-            templateId: sendOptions.templateId,
+            templateId: Number(sendOptions.templateId),
             params: sendOptions.params,
         };
         try {
@@ -425,7 +425,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                 ...this.options_.default_data
             }
         };
-        console.log('sendOptions', sendOptions);
+        //console.log('sendOptions', sendOptions)
         if ((_e = this.options_) === null || _e === void 0 ? void 0 : _e.bcc)
             sendOptions.Bcc = this.options_.bcc;
         if (attachments === null || attachments === void 0 ? void 0 : attachments.length) {
@@ -689,7 +689,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         const subtotal_ex_tax = items.reduce((total, i) => {
             return total + i.totals.subtotal;
         }, 0);
-        console.log(`TOTAL ${this.humanPrice_(total, currencyCode)} ${currencyCode}`);
+        //console.log(`TOTAL ${this.humanPrice_(total, currencyCode)} ${currencyCode}`,)
         return {
             ...order,
             locale,

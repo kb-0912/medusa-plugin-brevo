@@ -9,12 +9,98 @@ Notifications plugin for Medusa ecommerce server that sends transactional emails
 - Create PDF invoices and credit notes and attach them to the email
 - Send out upsell emails to customers that have recently placed an order with certain collections
 - Send out automated abandoned cart emails to customers that have abandoned their cart (based on last updated date of cart)
+- Support different languages base on countrycode or locale. (Need to add "locale or countryCode to cart context on frontend)
 
 ## Configuration
 
 Enable in your medusa-config.js file similar to other plugins:  
 
 ###### More events? (work in progress within the plugin!) [See here](https://docs.medusajs.com/advanced/backend/subscribers/events-list)
+
+### Config example with multi language
+
+```js
+const plugins = [
+    // ... other plugins
+    {
+    resolve: `medusa-plugin-brevo-email`,
+    options: {
+      api_key: process.env.BREVO_API_KEY,
+      from_email: process.env.BREVO_FROM_EMAIL,
+      from_name: process.env.BREVO_FROM_NAME,
+      
+      // Event templates with countryCode and locale support
+      events: {
+        order: {
+          placed: {
+            en: process.env.BREVO_ORDER_PLACED_EN || 3,
+            vn: process.env.BREVO_ORDER_PLACED_VN || 11, // Vietnamese template
+            default: process.env.BREVO_ORDER_PLACED || 3, // Fallback if neither countryCode nor locale match
+          },
+          canceled: {
+            en: process.env.BREVO_ORDER_CANCELED_EN || 6,
+            vn: process.env.BREVO_ORDER_CANCELED_VN || 14, // Vietnamese template
+            default: process.env.BREVO_ORDER_CANCELED || 6, // Fallback if neither countryCode nor locale match
+          },
+          shipment_created: {
+            en: process.env.BREVO_ORDER_SHIPMENT_CREATED_EN || 4,
+            vn: process.env.BREVO_ORDER_SHIPMENT_CREATED_VN || 10, // Vietnamese template
+            default: process.env.BREVO_ORDER_SHIPMENT_CREATED || 4, // Fallback if neither countryCode nor locale match
+          },
+        },
+        customer: {
+          created: {
+            en: process.env.BREVO_CUSTOMER_CREATED_EN || 7,
+            vn: process.env.BREVO_CUSTOMER_CREATED_VN || 12, // Vietnamese template
+            default: process.env.BREVO_CUSTOMER_CREATED || 7, // Fallback if neither countryCode nor locale match
+          },
+          password_reset: {
+            en: process.env.BREVO_CUSTOMER_PASSWORD_RESET_EN || 5,
+            vn: process.env.BREVO_CUSTOMER_PASSWORD_RESET_VN || 5, // Vietnamese template
+            default: process.env.BREVO_CUSTOMER_PASSWORD_RESET || 5, // Fallback if neither countryCode nor locale match
+          },
+        },
+        user: {
+          password_reset: {
+            en: process.env.BREVO_USER_PASSWORD_RESET_EN || 5,
+            vn: process.env.BREVO_USER_PASSWORD_RESET_VN || 5, // Vietnamese template
+            default: process.env.BREVO_USER_PASSWORD_RESET || 5, // Fallback if neither countryCode nor locale match
+          },
+        },
+      },
+      
+      // Contact list settings
+      contact_list: {
+        enabled: process.env.BREVO_CONTACT_LIST_ENABLED || true,
+        contact_list_id: process.env.BREVO_CONTACT_LIST_ID || 2,
+      },
+  
+      // Abandoned cart settings with locale and countryCode support
+      abandoned_cart: {
+        enabled: process.env.BREVO_ABANDONED_CART_ENABLED || false,
+        first: {
+          delay: process.env.BREVO_ABANDONED_CART_FIRST_DELAY || 24, // Delay in hours
+          template: {
+            en: process.env.BREVO_ABANDONED_CART_FIRST_TEMPLATE_EN || 2,
+            vn: process.env.BREVO_ABANDONED_CART_FIRST_TEMPLATE_VN || 13, // Vietnamese template
+            default: process.env.BREVO_ABANDONED_CART_FIRST_TEMPLATE || 2, // Fallback if neither countryCode nor locale match
+          },
+        },
+        second: {
+          delay: process.env.BREVO_ABANDONED_CART_SECOND_DELAY || 72, // Delay in hours
+          template: {
+            en: process.env.BREVO_ABANDONED_CART_SECOND_TEMPLATE_EN || 2,
+            vn: process.env.BREVO_ABANDONED_CART_SECOND_TEMPLATE_VN || 13, // Vietnamese template
+            default: process.env.BREVO_ABANDONED_CART_SECOND_TEMPLATE || 2, // Fallback if neither countryCode nor locale match
+          },
+        },
+       
+      },
+    },
+  },
+]
+
+```
 
 ```js
 const plugins = [
