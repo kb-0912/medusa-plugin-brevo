@@ -65,7 +65,7 @@
     "get-stream": "^6.0.1",
     "medusa-core-utils": "^1.1.37",
     "medusa-test-utils": "^1.1.37",
-    "pdfkit": "^0.13.0"
+    "pdfkit": "^0.15.0"
   },
   "keywords": [
     "medusa-plugin",
