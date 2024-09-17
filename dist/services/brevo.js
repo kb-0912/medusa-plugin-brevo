@@ -96,7 +96,7 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         }
     }
     async getAbandonedCarts() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         if (!((_a = this.options_) === null || _a === void 0 ? void 0 : _a.abandoned_cart) || !((_c = (_b = this.options_) === null || _b === void 0 ? void 0 : _b.abandoned_cart) === null || _c === void 0 ? void 0 : _c.enabled) || !((_e = (_d = this.options_) === null || _d === void 0 ? void 0 : _d.abandoned_cart) === null || _e === void 0 ? void 0 : _e.first)) {
             return;
         }
@@ -107,7 +107,6 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         const secondCheck = new Date(now.getTime() - parseInt((_h = options === null || options === void 0 ? void 0 : options.second) === null || _h === void 0 ? void 0 : _h.delay) * 60 * 60 * 1000);
         const thirdCheck = new Date(now.getTime() - parseInt((_j = options === null || options === void 0 ? void 0 : options.third) === null || _j === void 0 ? void 0 : _j.delay) * 60 * 60 * 1000);
         const cartRepository = this.manager_.withRepository(this.cartRepository_);
-        const lineItemRepository = this.manager_.withRepository(this.lineItemRepository_);
         const carts = await cartRepository.findBy({
             email: (0, typeorm_1.Not)((0, typeorm_1.IsNull)()),
         });
@@ -131,35 +130,15 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
         if (abandonedCarts.length === 0)
             return;
         for (const cart of abandonedCarts) {
-            const check = cart.items.sort((a, b) => {
-                return b.updated_at.getTime() - a.updated_at.getTime();
-            })[0].updated_at;
+            const check = cart.items.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime())[0].updated_at;
             const items = this.processItems_(cart.items, ((_l = cart === null || cart === void 0 ? void 0 : cart.region) === null || _l === void 0 ? void 0 : _l.includes_tax) ? 0 : (((_m = cart === null || cart === void 0 ? void 0 : cart.region) === null || _m === void 0 ? void 0 : _m.tax_rate) / 100), (_o = cart === null || cart === void 0 ? void 0 : cart.region) === null || _o === void 0 ? void 0 : _o.currency_code.toUpperCase());
-            const sendOptions = {
-                sender: {
-                    email: this.options_.from_email,
-                    name: this.options_.from_name
-                }, // Wrap 'From' in a 'sender' object with 'email'
-                to: [{ email: cart.email }], // 'to' should be an array of objects with 'email'
-                templateId: 0, // Placeholder, this will be overwritten below
-                params: {
-                    ...cart,
-                    items,
-                    ...this.options_.default_data
-                }
-            };
-            // Use this.options_.events[group][action] to get templateId based on the abandoned cart stage
+            // Extract locale and countryCode using your extractLocale function
+            const { locale, countryCode } = await this.extractLocale(cart);
             let templateId;
-            const group = "abandoned_cart"; // Set group for abandoned cart emails
-            const action = check < thirdCheck
-                ? "third"
-                : check < secondCheck
-                    ? "second"
-                    : "first"; // Determine which abandoned cart email to send
-            templateId = (_q = (_p = this.options_.events) === null || _p === void 0 ? void 0 : _p[group]) === null || _q === void 0 ? void 0 : _q[action];
+            const action = check < thirdCheck ? "third" : check < secondCheck ? "second" : "first"; // Determine which abandoned cart email to send
+            templateId = (_p = options[action]) === null || _p === void 0 ? void 0 : _p.template;
             // Check if templateId is an object (with locale or countryCode mappings) or a single ID
             if (typeof templateId === "object") {
-                // Prioritize countryCode over locale
                 if (countryCode && templateId[countryCode]) {
                     templateId = templateId[countryCode];
                 }
@@ -167,65 +146,44 @@ class BrevoService extends medusa_interfaces_1.NotificationService {
                     templateId = templateId[locale];
                 }
                 else {
-                    templateId = Object.values(templateId)[0]; // Fallback to the first template
+                    templateId = templateId.default || Object.values(templateId)[0]; // Fallback to the default or first template
                 }
             }
-            sendOptions.templateId = Number(templateId); // Ensure the template ID is a number
+            const sendOptions = {
+                sender: { email: this.options_.from_email, name: this.options_.from_name },
+                to: [{ email: cart.email }],
+                templateId: Number(templateId), // Ensure the template ID is a number
+                params: { ...cart, items, ...this.options_.default_data }
+            };
+            // Check which reminder stage to send
             if (check < secondCheck) {
-                if (check < thirdCheck) {
-                    if (((_r = options === null || options === void 0 ? void 0 : options.third) === null || _r === void 0 ? void 0 : _r.template) && ((_s = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _s === void 0 ? void 0 : _s.third_abandonedcart_mail) !== true) {
-                        sendOptions.templateId = Number((_t = options === null || options === void 0 ? void 0 : options.third) === null || _t === void 0 ? void 0 : _t.template); // Ensure the template ID is a number
-                        await this.sendEmail(sendOptions)
-                            .then(async () => {
-                            await cartRepository.update(cart.id, {
-                                metadata: {
-                                    ...cart.metadata || {},
-                                    third_abandonedcart_mail: true
-                                }
-                            });
-                        })
-                            .catch((error) => {
-                            console.error(error);
-                            return { to: sendOptions.to, status: 'failed', data: sendOptions };
-                        });
-                    }
-                }
-                else {
-                    if (((_u = options === null || options === void 0 ? void 0 : options.second) === null || _u === void 0 ? void 0 : _u.template) && ((_v = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _v === void 0 ? void 0 : _v.second_abandonedcart_mail) !== true) {
-                        sendOptions.templateId = Number((_w = options === null || options === void 0 ? void 0 : options.second) === null || _w === void 0 ? void 0 : _w.template); // Ensure the template ID is a number
-                        await this.sendEmail(sendOptions)
-                            .then(async () => {
-                            await cartRepository.update(cart.id, {
-                                metadata: {
-                                    ...cart.metadata || {},
-                                    second_abandonedcart_mail: true
-                                }
-                            });
-                        })
-                            .catch((error) => {
-                            console.error(error);
-                            return { to: sendOptions.to, status: 'failed', data: sendOptions };
-                        });
-                    }
-                }
-            }
-            else {
-                if (((_x = options === null || options === void 0 ? void 0 : options.first) === null || _x === void 0 ? void 0 : _x.template) && ((_y = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _y === void 0 ? void 0 : _y.first_abandonedcart_mail) !== true) {
-                    sendOptions.templateId = Number((_z = options === null || options === void 0 ? void 0 : options.first) === null || _z === void 0 ? void 0 : _z.template); // Ensure the template ID is a number
+                if (check < thirdCheck && !((_q = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _q === void 0 ? void 0 : _q.third_abandonedcart_mail)) {
                     await this.sendEmail(sendOptions)
                         .then(async () => {
                         await cartRepository.update(cart.id, {
-                            metadata: {
-                                ...cart.metadata || {},
-                                first_abandonedcart_mail: true
-                            }
+                            metadata: { ...cart.metadata, third_abandonedcart_mail: true }
                         });
                     })
-                        .catch((error) => {
-                        console.error(error);
-                        return { to: sendOptions.to, status: 'failed', data: sendOptions };
-                    });
+                        .catch((error) => console.error(error));
                 }
+            }
+            else if (check < secondCheck && !((_r = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _r === void 0 ? void 0 : _r.second_abandonedcart_mail)) {
+                await this.sendEmail(sendOptions)
+                    .then(async () => {
+                    await cartRepository.update(cart.id, {
+                        metadata: { ...cart.metadata, second_abandonedcart_mail: true }
+                    });
+                })
+                    .catch((error) => console.error(error));
+            }
+            else if (!((_s = cart === null || cart === void 0 ? void 0 : cart.metadata) === null || _s === void 0 ? void 0 : _s.first_abandonedcart_mail)) {
+                await this.sendEmail(sendOptions)
+                    .then(async () => {
+                    await cartRepository.update(cart.id, {
+                        metadata: { ...cart.metadata, first_abandonedcart_mail: true }
+                    });
+                })
+                    .catch((error) => console.error(error));
             }
         }
     }
