@@ -101,6 +101,7 @@ class BrevoService extends NotificationService {
     if (!this.options_?.abandoned_cart || !this.options_?.abandoned_cart?.enabled || !this.options_?.abandoned_cart?.first) {
       return;
     }
+  
     console.log("Getting abandoned carts");
     const options = this.options_?.abandoned_cart;
     const now = new Date();
@@ -108,10 +109,10 @@ class BrevoService extends NotificationService {
     const secondCheck = new Date(now.getTime() - parseInt(options?.second?.delay) * 60 * 60 * 1000);
     const thirdCheck = new Date(now.getTime() - parseInt(options?.third?.delay) * 60 * 60 * 1000);
     const cartRepository = this.manager_.withRepository(this.cartRepository_);
-    const lineItemRepository = this.manager_.withRepository(this.lineItemRepository_);
     const carts = await cartRepository.findBy({
       email: Not(IsNull()),
     });
+  
     console.log("Checking carts");
     let abandonedCarts = [];
     for (const cart of carts) {
@@ -127,112 +128,68 @@ class BrevoService extends NotificationService {
         abandonedCarts.push(cartData);
       }
     }
+    
     if (abandonedCarts.length === 0) return;
   
     for (const cart of abandonedCarts) {
-      const check = cart.items.sort((a, b) => {
-        return b.updated_at.getTime() - a.updated_at.getTime();
-      })[0].updated_at;
+      const check = cart.items.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime())[0].updated_at;
       const items = this.processItems_(cart.items, cart?.region?.includes_tax ? 0 : (cart?.region?.tax_rate / 100), cart?.region?.currency_code.toUpperCase());
-
-
-      const sendOptions = {
-        sender: { 
-          email: this.options_.from_email,
-          name: this.options_.from_name
-        },  // Wrap 'From' in a 'sender' object with 'email'
-        to: [{ email: cart.email }],  // 'to' should be an array of objects with 'email'
-        templateId: 0,  // Placeholder, this will be overwritten below
-        params: {
-          ...cart,
-          items,
-          ...this.options_.default_data
-        }
-      };
-
-       // Use this.options_.events[group][action] to get templateId based on the abandoned cart stage
-    let templateId;
-    const group = "abandoned_cart"; // Set group for abandoned cart emails
-    const action = check < thirdCheck
-      ? "third"
-      : check < secondCheck
-      ? "second"
-      : "first"; // Determine which abandoned cart email to send
-
-    templateId = this.options_.events?.[group]?.[action];
-
-    // Check if templateId is an object (with locale or countryCode mappings) or a single ID
-    if (typeof templateId === "object") {
-      // Prioritize countryCode over locale
-      if (countryCode && templateId[countryCode]) {
-        templateId = templateId[countryCode];
-      } else if (locale && templateId[locale]) {
-        templateId = templateId[locale];
-      } else {
-        templateId = Object.values(templateId)[0]; // Fallback to the first template
-      }
-    }
-
-    sendOptions.templateId = Number(templateId); // Ensure the template ID is a number
-
   
-      if (check < secondCheck) {
-        if (check < thirdCheck) {
-          if (options?.third?.template && cart?.metadata?.third_abandonedcart_mail !== true) {
-            sendOptions.templateId = Number(options?.third?.template);  // Ensure the template ID is a number
-            await this.sendEmail(sendOptions)
-              .then(async () => {
-                await cartRepository.update(cart.id, {
-                  metadata: {
-                    ...cart.metadata || {},
-                    third_abandonedcart_mail: true
-                  }
-                });
-              })
-              .catch((error) => {
-                console.error(error);
-                return { to: sendOptions.to, status: 'failed', data: sendOptions };
-              });
-          }
+      // Extract locale and countryCode using your extractLocale function
+      const { locale, countryCode } = await this.extractLocale(cart); 
+  
+      let templateId;
+      const action = check < thirdCheck ? "third" : check < secondCheck ? "second" : "first";  // Determine which abandoned cart email to send
+      templateId = options[action]?.template;
+  
+      // Check if templateId is an object (with locale or countryCode mappings) or a single ID
+      if (typeof templateId === "object") {
+        if (countryCode && templateId[countryCode]) {
+          templateId = templateId[countryCode];
+        } else if (locale && templateId[locale]) {
+          templateId = templateId[locale];
         } else {
-          if (options?.second?.template && cart?.metadata?.second_abandonedcart_mail !== true) {
-            sendOptions.templateId = Number(options?.second?.template);  // Ensure the template ID is a number
-            await this.sendEmail(sendOptions)
-              .then(async () => {
-                await cartRepository.update(cart.id, {
-                  metadata: {
-                    ...cart.metadata || {},
-                    second_abandonedcart_mail: true
-                  }
-                });
-              })
-              .catch((error) => {
-                console.error(error);
-                return { to: sendOptions.to, status: 'failed', data: sendOptions };
-              });
-          }
+          templateId = templateId.default || Object.values(templateId)[0];  // Fallback to the default or first template
         }
-      } else {
-        if (options?.first?.template && cart?.metadata?.first_abandonedcart_mail !== true) {
-          sendOptions.templateId = Number(options?.first?.template);  // Ensure the template ID is a number
+      }
+  
+      const sendOptions = {
+        sender: { email: this.options_.from_email, name: this.options_.from_name },
+        to: [{ email: cart.email }],
+        templateId: Number(templateId),  // Ensure the template ID is a number
+        params: { ...cart, items, ...this.options_.default_data }
+      };
+  
+      // Check which reminder stage to send
+      if (check < secondCheck) {
+        if (check < thirdCheck && !cart?.metadata?.third_abandonedcart_mail) {
           await this.sendEmail(sendOptions)
             .then(async () => {
               await cartRepository.update(cart.id, {
-                metadata: {
-                  ...cart.metadata || {},
-                  first_abandonedcart_mail: true
-                }
+                metadata: { ...cart.metadata, third_abandonedcart_mail: true }
               });
             })
-            .catch((error) => {
-              console.error(error);
-              return { to: sendOptions.to, status: 'failed', data: sendOptions };
-            });
+            .catch((error) => console.error(error));
         }
+      } else if (check < secondCheck && !cart?.metadata?.second_abandonedcart_mail) {
+        await this.sendEmail(sendOptions)
+          .then(async () => {
+            await cartRepository.update(cart.id, {
+              metadata: { ...cart.metadata, second_abandonedcart_mail: true }
+            });
+          })
+          .catch((error) => console.error(error));
+      } else if (!cart?.metadata?.first_abandonedcart_mail) {
+        await this.sendEmail(sendOptions)
+          .then(async () => {
+            await cartRepository.update(cart.id, {
+              metadata: { ...cart.metadata, first_abandonedcart_mail: true }
+            });
+          })
+          .catch((error) => console.error(error));
       }
     }
   }
-  
 
   async remindUpsellOrders() {
     if (!this.options_?.upsell || !this.options_?.upsell?.enabled || !this.options_?.upsell?.collection || !this.options_?.upsell?.delay || !this.options_?.upsell?.template) {
@@ -581,6 +538,7 @@ class BrevoService extends NotificationService {
       fulfillment: shipment,
       tracking_links: shipment.tracking_links,
       tracking_number: tracking_numbers,
+      
     };
   }
   
